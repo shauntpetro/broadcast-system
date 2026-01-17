@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Broadcast Ticker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Oswald', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* ========================================
+       Ticker Container - Tape/Paper Style
+    ======================================== */
+    .ticker-wrapper {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      min-height: 100px;
+    }
+
+    /* Tape pieces */
+    .tape {
+      position: absolute;
+      width: 70px;
+      height: 28px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 235, 180, 0.85) 0%,
+        rgba(245, 222, 160, 0.9) 50%,
+        rgba(235, 210, 145, 0.85) 100%
+      );
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      z-index: 10;
+      transform-origin: center center;
+    }
+
+    .tape::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(200, 180, 120, 0.15) 3px,
+        rgba(200, 180, 120, 0.15) 4px
+      );
+    }
+
+    .tape-left {
+      top: -10px;
+      left: 40px;
+      transform: rotate(-6deg);
+    }
+
+    .tape-right {
+      top: -8px;
+      right: 50px;
+      transform: rotate(4deg);
+    }
+
+    .tape-bottom-left {
+      bottom: -12px;
+      left: 60px;
+      transform: rotate(5deg);
+    }
+
+    .tape-bottom-right {
+      bottom: -10px;
+      right: 40px;
+      transform: rotate(-3deg);
+    }
+
+    /* Top accent bar */
+    .accent-bar-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: var(--accent-color, #c41e3a);
+      z-index: 5;
+    }
+
+    /* Bottom accent bar */
+    .accent-bar-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: var(--accent-color, #c41e3a);
+      z-index: 5;
+    }
+
+    /* Ripped edge effect - top */
+    .ripped-edge-top {
+      position: absolute;
+      top: 6px;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background: white;
+      z-index: 6;
+      clip-path: polygon(
+        0% 100%,
+        2% 70%, 4% 100%, 6% 65%, 8% 95%, 10% 70%,
+        12% 100%, 14% 60%, 16% 90%, 18% 70%, 20% 100%,
+        22% 75%, 24% 95%, 26% 65%, 28% 100%, 30% 70%,
+        32% 90%, 34% 60%, 36% 100%, 38% 75%, 40% 95%,
+        42% 65%, 44% 100%, 46% 70%, 48% 90%, 50% 65%,
+        52% 100%, 54% 75%, 56% 90%, 58% 65%, 60% 100%,
+        62% 70%, 64% 95%, 66% 60%, 68% 100%, 70% 75%,
+        72% 90%, 74% 65%, 76% 100%, 78% 70%, 80% 95%,
+        82% 65%, 84% 100%, 86% 75%, 88% 90%, 90% 65%,
+        92% 100%, 94% 70%, 96% 90%, 98% 65%, 100% 100%
+      );
+    }
+
+    /* Ripped edge effect - bottom */
+    .ripped-edge-bottom {
+      position: absolute;
+      bottom: 6px;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background: white;
+      z-index: 6;
+      clip-path: polygon(
+        0% 0%,
+        2% 35%, 4% 0%, 6% 40%, 8% 10%, 10% 35%,
+        12% 0%, 14% 45%, 16% 15%, 18% 35%, 20% 0%,
+        22% 30%, 24% 10%, 26% 40%, 28% 0%, 30% 35%,
+        32% 15%, 34% 45%, 36% 0%, 38% 30%, 40% 10%,
+        42% 40%, 44% 0%, 46% 35%, 48% 15%, 50% 40%,
+        52% 0%, 54% 30%, 56% 15%, 58% 40%, 60% 0%,
+        62% 35%, 64% 10%, 66% 45%, 68% 0%, 70% 30%,
+        72% 15%, 74% 40%, 76% 0%, 78% 35%, 80% 10%,
+        82% 40%, 84% 0%, 86% 30%, 88% 15%, 90% 40%,
+        92% 0%, 94% 35%, 96% 15%, 98% 40%, 100% 0%
+      );
+    }
+
+    /* Main Paper Panel */
+    .ticker-paper {
+      background: white;
+      margin: 6px 0;
+      padding: 16px 24px;
+      position: relative;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.12),
+        0 8px 40px rgba(0, 0, 0, 0.08);
+      height: 68px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Paper texture overlay */
+    .ticker-paper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.01) 2px,
+          rgba(0, 0, 0, 0.01) 3px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ========================================
+       Ticker Content Area
+    ======================================== */
+    .ticker-content-area {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* ========================================
+       Standard Ticker Mode
+    ======================================== */
+    .ticker-inner {
+      display: inline-block;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    .ticker-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .ticker-segment {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 28px;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      letter-spacing: 1px;
+    }
+
+    .ticker-separator {
+      color: var(--accent-color, #c41e3a);
+      font-size: 20px;
+      opacity: 0.6;
+    }
+
+    /* ========================================
+       Parallax Ticker Mode
+    ======================================== */
+    .parallax-ticker-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ticker-item--current {
+      position: relative;
+    }
+
+    .ticker-item--next {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    /* Title Badge - Paper style with accent */
+    .ticker-title {
+      background: var(--accent-color, #c41e3a);
+      padding: 8px 20px;
+      flex-shrink: 0;
+      will-change: transform, opacity, filter;
+      transform-origin: left center;
+      position: relative;
+    }
+
+    /* Torn edge on title badge */
+    .ticker-title::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -8px;
+      bottom: 0;
+      width: 8px;
+      background: var(--accent-color, #c41e3a);
+      clip-path: polygon(
+        0% 0%,
+        100% 10%, 50% 20%, 100% 30%, 50% 40%,
+        100% 50%, 50% 60%, 100% 70%, 50% 80%,
+        100% 90%, 0% 100%
+      );
+    }
+
+    .ticker-title .title-text {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+
+    /* Separator */
+    .ticker-separator-parallax {
+      font-size: 28px;
+      font-weight: 300;
+      color: rgba(0, 0, 0, 0.2);
+      margin: 0 20px;
+      flex-shrink: 0;
+      will-change: transform, opacity, filter;
+    }
+
+    /* Content Mask */
+    .ticker-content-mask {
+      flex: 1;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      position: relative;
+      will-change: transform, opacity;
+      mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 3%,
+        black 97%,
+        transparent 100%
+      );
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 3%,
+        black 97%,
+        transparent 100%
+      );
+    }
+
+    .ticker-content {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 400;
+      font-size: 26px;
+      font-style: italic;
+      color: #333;
+      white-space: nowrap;
+      will-change: transform;
+      padding-right: 50px;
+      visibility: hidden;  /* Hide until positioned */
+    }
+
+    /* ========================================
+       Scanner Line - Subtle paper style
+    ======================================== */
+    .scanner-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 6px;
+      height: 3px;
+      background: rgba(196, 30, 58, 0.1);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .scanner-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 0%;
+      background: var(--accent-color, #c41e3a);
+      opacity: 0.7;
+      will-change: width;
+    }
+
+    .scanner-head {
+      position: absolute;
+      top: 50%;
+      left: 0%;
+      transform: translate(-50%, -50%);
+      width: 12px;
+      height: 5px;
+      border-radius: 2px;
+      background: var(--accent-color, #c41e3a);
+      box-shadow: 0 0 6px var(--accent-color, #c41e3a);
+      opacity: 0.9;
+      will-change: left;
+    }
+
+    /* ========================================
+       Pinned Comment Display Mode
+    ======================================== */
+    .pinned-comment-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pinned-type-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-color, #c41e3a);
+      flex-shrink: 0;
+    }
+
+    .pinned-author {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-style: italic;
+      font-size: 28px;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .pinned-message {
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: 22px;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .pinned-message::before {
+      content: '"';
+      position: absolute;
+      left: 0;
+      top: -3px;
+      font-size: 28px;
+      color: var(--accent-color, #c41e3a);
+      font-family: Georgia, serif;
+      opacity: 0.5;
+    }
+
+    .pinned-amount {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--accent-color, #c41e3a);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    /* ========================================
+       Waiting State
+    ======================================== */
+    .waiting-message {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    /* ========================================
+       Superchat Tier Colors
+    ======================================== */
+    .tier-blue { --accent-color: #1e88e5; }
+    .tier-teal { --accent-color: #00bcd4; }
+    .tier-yellow { --accent-color: #f9a825; }
+    .tier-orange { --accent-color: #f57c00; }
+    .tier-magenta { --accent-color: #e91e63; }
+    .tier-red { --accent-color: #c41e3a; }
+  </style>
+</head>
+<body>
+  <div id="tickerWrapper" class="ticker-wrapper">
+    <!-- Tape pieces -->
+    <div class="tape tape-left" id="tapeLeft"></div>
+    <div class="tape tape-right" id="tapeRight"></div>
+    <div class="tape tape-bottom-left" id="tapeBottomLeft"></div>
+    <div class="tape tape-bottom-right" id="tapeBottomRight"></div>
+
+    <!-- Top accent bar and ripped edge -->
+    <div class="accent-bar-top" id="accentTop"></div>
+    <div class="ripped-edge-top"></div>
+
+    <!-- Main Paper Panel -->
+    <div class="ticker-paper">
+      <div class="ticker-content-area" id="tickerContent">
+        <div class="waiting-message">Connecting to server...</div>
+      </div>
+    </div>
+
+    <!-- Bottom ripped edge and accent bar -->
+    <div class="ripped-edge-bottom"></div>
+    <div class="accent-bar-bottom" id="accentBottom"></div>
+
+    <!-- Scanner -->
+    <div class="scanner-container">
+      <div class="scanner-fill" id="scannerFill"></div>
+      <div class="scanner-head" id="scannerHead"></div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // Configuration from URL parameters
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const config = {
+      mode: params.get('mode') || 'parallax',  // 'ticker', 'parallax', 'pinned'
+      speed: parseInt(params.get('speed')) || 100
+    };
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let tickerItems = [];
+    let pinnedMessage = null;
+    let tickerSpeed = config.speed;
+    let showTicker = true;
+    let currentIndex = 0;
+    let isTransitioning = false;
+    let scrollAnimation = null;
+
+    // DOM Elements
+    const wrapper = document.getElementById('tickerWrapper');
+    const tapeLeft = document.getElementById('tapeLeft');
+    const tapeRight = document.getElementById('tapeRight');
+    const tapeBottomLeft = document.getElementById('tapeBottomLeft');
+    const tapeBottomRight = document.getElementById('tapeBottomRight');
+    const accentTop = document.getElementById('accentTop');
+    const accentBottom = document.getElementById('accentBottom');
+
+    // DOM refs for parallax ticker
+    let currentTitleEl = null;
+    let currentSeparatorEl = null;
+    let currentContentMaskEl = null;
+    let currentContentEl = null;
+    let nextTitleEl = null;
+    let nextSeparatorEl = null;
+    let nextContentMaskEl = null;
+    let nextContentEl = null;
+
+    // ========================================================================
+    // Animate wrapper in
+    // ========================================================================
+    function animateWrapperIn() {
+      // Set initial states
+      gsap.set(wrapper, { opacity: 1 });
+      gsap.set([tapeLeft, tapeRight], { opacity: 0, rotation: '+=15', scale: 0.6 });
+      gsap.set([tapeBottomLeft, tapeBottomRight], { opacity: 0, rotation: '-=15', scale: 0.6 });
+      gsap.set(accentTop, { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set(accentBottom, { scaleX: 0, transformOrigin: 'right center' });
+
+      const tl = gsap.timeline();
+
+      // Accent bars sweep in
+      tl.to(accentTop, { scaleX: 1, duration: 0.4, ease: 'power2.out' });
+      tl.to(accentBottom, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, '-=0.3');
+
+      // Tape pieces slap down
+      tl.to(tapeLeft, { opacity: 1, rotation: -6, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.2');
+      tl.to(tapeRight, { opacity: 1, rotation: 4, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.3');
+      tl.to(tapeBottomLeft, { opacity: 1, rotation: 5, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.25');
+      tl.to(tapeBottomRight, { opacity: 1, rotation: -3, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.3');
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[Ticker] WebSocket connected');
+        animateWrapperIn();
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (e) {
+          console.error('[Ticker] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[Ticker] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[Ticker] WebSocket error:', error);
+      };
+    }
+
+    function handleMessage(data) {
+      console.log('[Ticker] Received message:', data.type, data.data);
+
+      switch (data.type) {
+        case 'init':
+          tickerItems = data.data.tickerItems || [];
+          pinnedMessage = data.data.pinnedMessage;
+          tickerSpeed = data.data.tickerSpeed || config.speed;
+          showTicker = data.data.showTicker !== false;
+          console.log('[Ticker] Init with', tickerItems.length, 'items:', tickerItems);
+          initTicker();
+          break;
+
+        case 'pin':
+          pinnedMessage = data.data.message;
+          if (config.mode === 'pinned') {
+            renderPinnedMode();
+          }
+          break;
+
+        case 'ticker_update':
+          console.log('[Ticker] Update with', data.data.tickerItems?.length, 'items');
+          if (data.data.tickerItems) tickerItems = data.data.tickerItems;
+          if (data.data.tickerSpeed !== undefined) tickerSpeed = data.data.tickerSpeed;
+          if (data.data.showTicker !== undefined) showTicker = data.data.showTicker;
+          wrapper.style.display = showTicker ? 'block' : 'none';
+          // Re-initialize if items changed
+          if (data.data.tickerItems) {
+            initTicker();
+          }
+          break;
+
+        case 'queue_update':
+          // Can update ticker based on queue if needed
+          break;
+      }
+    }
+
+    // ========================================================================
+    // Ticker Initialization
+    // ========================================================================
+    function initTicker() {
+      console.log('[Ticker] Initializing mode:', config.mode, 'items:', tickerItems.length, 'showTicker:', showTicker);
+      wrapper.style.display = showTicker ? 'block' : 'none';
+
+      switch (config.mode) {
+        case 'ticker':
+          initStandardTicker();
+          break;
+        case 'parallax':
+          initParallaxTicker();
+          break;
+        case 'pinned':
+          renderPinnedMode();
+          break;
+        default:
+          initParallaxTicker();
+      }
+    }
+
+    // ========================================================================
+    // Standard Ticker Mode
+    // ========================================================================
+    function initStandardTicker() {
+      const container = document.getElementById('tickerContent');
+
+      if (tickerItems.length === 0) {
+        container.innerHTML = '<div class="waiting-message">No ticker content</div>';
+        return;
+      }
+
+      // Build ticker content
+      const segments = tickerItems.map((item, i) => {
+        const text = item.content || item.title || '';
+        return `<span class="ticker-segment">${escapeHtml(text)}</span>`;
+      }).join('<span class="ticker-separator">•</span>');
+
+      // Repeat 3x for seamless scrolling
+      const repeated = `
+        <span class="ticker-repeat">${segments}<span class="ticker-separator">•</span></span>
+        <span class="ticker-repeat">${segments}<span class="ticker-separator">•</span></span>
+        <span class="ticker-repeat">${segments}<span class="ticker-separator">•</span></span>
+      `;
+
+      container.innerHTML = `
+        <div class="ticker-inner" id="tickerInner">
+          <span class="ticker-text">${repeated}</span>
+        </div>
+      `;
+
+      // Start GSAP animation
+      const tickerInner = document.getElementById('tickerInner');
+      const tickerText = tickerInner.querySelector('.ticker-text');
+      const textWidth = tickerText.offsetWidth / 3;  // One repeat width
+
+      gsap.killTweensOf(tickerInner);
+      gsap.set(tickerInner, { x: 0 });
+
+      const duration = textWidth / tickerSpeed;
+
+      gsap.to(tickerInner, {
+        x: -textWidth,
+        duration: duration,
+        ease: 'none',
+        repeat: -1,
+        onUpdate: function() {
+          const progress = this.progress() * 100;
+          updateScanner(progress);
+        },
+        onRepeat: () => {
+          gsap.set(tickerInner, { x: 0 });
+        }
+      });
+    }
+
+    // ========================================================================
+    // Parallax Ticker Mode
+    // ========================================================================
+    function initParallaxTicker() {
+      const container = document.getElementById('tickerContent');
+      console.log('[Ticker] initParallaxTicker called with', tickerItems.length, 'items');
+
+      if (tickerItems.length === 0) {
+        container.innerHTML = '<div class="waiting-message">No ticker content</div>';
+        console.log('[Ticker] No items, showing empty message');
+        return;
+      }
+
+      currentIndex = 0;
+      const currentItem = tickerItems[currentIndex];
+      const nextIndex = tickerItems.length > 1 ? 1 : 0;
+      const nextItem = tickerItems[nextIndex];
+
+      container.innerHTML = `
+        <div class="parallax-ticker-container">
+          <!-- Current Item -->
+          <div class="ticker-item ticker-item--current">
+            <div class="ticker-title" id="currentTitle">
+              <span class="title-text">${escapeHtml(currentItem.title || 'NEWS')}</span>
+            </div>
+            <div class="ticker-separator-parallax" id="currentSeparator">::</div>
+            <div class="ticker-content-mask" id="currentContentMask">
+              <div class="ticker-content" id="currentContent">${escapeHtml(currentItem.content || '')}</div>
+            </div>
+          </div>
+
+          <!-- Next Item (for transition) -->
+          ${tickerItems.length > 1 ? `
+          <div class="ticker-item ticker-item--next">
+            <div class="ticker-title" id="nextTitle">
+              <span class="title-text">${escapeHtml(nextItem.title || 'NEWS')}</span>
+            </div>
+            <div class="ticker-separator-parallax" id="nextSeparator">::</div>
+            <div class="ticker-content-mask" id="nextContentMask">
+              <div class="ticker-content" id="nextContent">${escapeHtml(nextItem.content || '')}</div>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+
+      // Get DOM refs
+      currentTitleEl = document.getElementById('currentTitle');
+      currentSeparatorEl = document.getElementById('currentSeparator');
+      currentContentMaskEl = document.getElementById('currentContentMask');
+      currentContentEl = document.getElementById('currentContent');
+      nextTitleEl = document.getElementById('nextTitle');
+      nextSeparatorEl = document.getElementById('nextSeparator');
+      nextContentMaskEl = document.getElementById('nextContentMask');
+      nextContentEl = document.getElementById('nextContent');
+
+      // Hide next item initially
+      if (nextTitleEl) {
+        gsap.set([nextTitleEl, nextSeparatorEl], { x: 60, opacity: 0, scale: 0.9, filter: 'blur(4px)' });
+        gsap.set(nextContentMaskEl, { opacity: 0, x: 30 });
+      }
+
+      // Wait for DOM to be ready, then position off-screen and start scrolling
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const maskWidth = currentContentMaskEl.offsetWidth;
+          gsap.set(currentContentEl, { x: maskWidth });
+          startParallaxContentScroll();
+        });
+      });
+    }
+
+    function startParallaxContentScroll() {
+      if (!currentContentEl || !currentContentMaskEl) return;
+
+      if (scrollAnimation) {
+        scrollAnimation.kill();
+      }
+
+      const contentWidth = currentContentEl.offsetWidth;
+      const maskWidth = currentContentMaskEl.offsetWidth;
+      const startX = maskWidth;
+      const scrollDistance = startX + contentWidth;
+      const duration = scrollDistance / tickerSpeed;
+
+      // Reset scanner
+      updateScanner(0);
+
+      // Position off-screen THEN make visible
+      gsap.set(currentContentEl, { x: startX, visibility: 'visible' });
+
+      scrollAnimation = gsap.to(currentContentEl, {
+        x: -contentWidth,
+        duration: duration,
+        ease: 'none',
+        onUpdate: function() {
+          const progress = this.progress() * 100;
+          updateScanner(progress);
+        },
+        onComplete: () => {
+          updateScanner(0);
+          if (tickerItems.length > 1) {
+            transitionToNext();
+          } else {
+            startParallaxContentScroll();  // Single item - restart
+          }
+        }
+      });
+    }
+
+    function transitionToNext() {
+      if (isTransitioning) return;
+      isTransitioning = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          currentIndex = (currentIndex + 1) % tickerItems.length;
+          updateParallaxItems();
+          isTransitioning = false;
+        }
+      });
+
+      // Phase 1: Current exits (slide left with blur)
+      tl.to([currentTitleEl, currentSeparatorEl], {
+        x: -80,
+        opacity: 0,
+        scale: 0.9,
+        filter: 'blur(4px)',
+        duration: 0.35,
+        ease: 'power2.in',
+        stagger: 0.05
+      });
+
+      tl.to(currentContentMaskEl, {
+        opacity: 0,
+        x: -40,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.3');
+
+      // Phase 2: Next enters (slide from right)
+      if (nextTitleEl) {
+        tl.fromTo([nextTitleEl, nextSeparatorEl],
+          { x: 60, opacity: 0, scale: 0.9, filter: 'blur(4px)' },
+          { x: 0, opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4, ease: 'power2.out', stagger: 0.08 },
+          '-=0.15'
+        );
+
+        tl.fromTo(nextContentMaskEl,
+          { opacity: 0, x: 30 },
+          { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' },
+          '-=0.2'
+        );
+      }
+    }
+
+    function updateParallaxItems() {
+      const currentItem = tickerItems[currentIndex];
+      const nextIndex = (currentIndex + 1) % tickerItems.length;
+      const nextItem = tickerItems[nextIndex];
+
+      // Hide content immediately before updating text
+      gsap.set(currentContentEl, { visibility: 'hidden' });
+
+      // Reset current item visibility
+      gsap.set([currentTitleEl, currentSeparatorEl], { x: 0, opacity: 1, scale: 1, filter: 'blur(0px)' });
+      gsap.set(currentContentMaskEl, { x: 0, opacity: 1 });
+
+      // Update content text
+      currentTitleEl.querySelector('.title-text').textContent = currentItem.title || 'NEWS';
+      currentContentEl.textContent = currentItem.content || '';
+
+      // Update and hide next item
+      if (nextTitleEl) {
+        nextTitleEl.querySelector('.title-text').textContent = nextItem.title || 'NEWS';
+        nextContentEl.textContent = nextItem.content || '';
+        gsap.set([nextTitleEl, nextSeparatorEl], { x: 60, opacity: 0, scale: 0.9, filter: 'blur(4px)' });
+        gsap.set(nextContentMaskEl, { opacity: 0, x: 30 });
+        gsap.set(nextContentEl, { visibility: 'hidden' });
+      }
+
+      // Wait for DOM to update, then position off-screen and start scrolling
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          startParallaxContentScroll();
+        });
+      });
+    }
+
+    // ========================================================================
+    // Pinned Comment Mode
+    // ========================================================================
+    function renderPinnedMode() {
+      const container = document.getElementById('tickerContent');
+
+      if (!pinnedMessage) {
+        container.innerHTML = '<div class="waiting-message">No pinned comment</div>';
+        return;
+      }
+
+      const isSuperchat = pinnedMessage.isSuperchat || pinnedMessage.type === 'superchat';
+
+      container.innerHTML = `
+        <div class="pinned-comment-container">
+          <div class="pinned-type-label">${isSuperchat ? 'SUPERCHAT' : 'COMMENT'}</div>
+          <div class="pinned-author">${escapeHtml(pinnedMessage.author || pinnedMessage.username)}</div>
+          <div class="pinned-message">${escapeHtml(pinnedMessage.message)}</div>
+          ${isSuperchat ? `<div class="pinned-amount">${pinnedMessage.amountFormatted || '$' + pinnedMessage.amount}</div>` : ''}
+        </div>
+      `;
+    }
+
+    // ========================================================================
+    // Scanner Updates
+    // ========================================================================
+    function updateScanner(progress) {
+      const fill = document.getElementById('scannerFill');
+      const head = document.getElementById('scannerHead');
+      if (fill) fill.style.width = `${progress}%`;
+      if (head) head.style.left = `${progress}%`;
+    }
+
+    // ========================================================================
+    // Utilities
+    // ========================================================================
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Test mode
+    if (params.get('test') === 'true') {
+      setTimeout(() => {
+        tickerItems = [
+          { title: 'BREAKING', content: 'This is the first ticker item with important news for your broadcast' },
+          { title: 'SPORTS', content: 'Second item showcasing the parallax transition effect with smooth animations' },
+          { title: 'WEATHER', content: 'Third item demonstrating the tape and ripped paper aesthetic design' }
+        ];
+        showTicker = true;
+        animateWrapperIn();
+        initTicker();
+      }, 500);
+    }
+  </script>
+</body>
+</html>

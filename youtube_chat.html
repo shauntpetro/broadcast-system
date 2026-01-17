@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Chat Control Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #0f0f0f; color: #fff; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1a1a1a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+    /* Superchat tier colors */
+    .tier-1 { background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%); }
+    .tier-2 { background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 100%); }
+    .tier-3 { background: linear-gradient(135deg, #ffb300 0%, #ff8f00 100%); }
+    .tier-4 { background: linear-gradient(135deg, #f57c00 0%, #e65100 100%); }
+    .tier-5 { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); }
+    .tier-6, .tier-7 { background: linear-gradient(135deg, #e62117 0%, #c62828 100%); }
+    .tier-7 { box-shadow: 0 0 20px rgba(230, 33, 23, 0.5); }
+
+    /* Status indicator */
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.connected { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .status-dot.disconnected { background: #ef4444; }
+    .status-dot.connecting { background: #eab308; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Message hover */
+    .message-item:hover { background: rgba(255,255,255,0.05); }
+    .message-item.pinned { background: rgba(220, 38, 38, 0.15); border-left: 3px solid #dc2626; }
+
+    /* Pin button */
+    .pin-btn { opacity: 0; transition: opacity 0.2s; }
+    .message-item:hover .pin-btn { opacity: 1; }
+    .message-item.pinned .pin-btn { opacity: 1; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="container mx-auto p-4 max-w-6xl">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <svg class="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        <h1 class="text-2xl font-bold">YouTube Chat Control Panel</h1>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="status-dot disconnected" id="statusDot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+    </div>
+
+    <!-- YouTube URL Input -->
+    <div class="bg-[#1a1a1a] rounded-xl p-4 mb-4">
+      <div class="flex gap-3">
+        <input
+          type="text"
+          id="youtubeUrl"
+          placeholder="Paste YouTube Live URL or Video ID..."
+          class="flex-1 bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+        >
+        <button onclick="connectToYouTube()" id="connectBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition">
+          Connect
+        </button>
+        <button onclick="disconnectFromYouTube()" id="disconnectBtn" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition hidden">
+          Disconnect
+        </button>
+      </div>
+      <p id="videoInfo" class="text-gray-500 text-sm mt-2 hidden">Connected to video: <span id="videoIdDisplay"></span></p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Message Queue -->
+      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-gray-800">
+          <h2 class="font-semibold">Message Queue</h2>
+          <div class="flex items-center gap-2">
+            <span class="text-gray-500 text-sm"><span id="queueCount">0</span> messages</span>
+            <button onclick="clearQueue()" class="text-gray-500 hover:text-red-500 text-sm transition">Clear All</button>
+          </div>
+        </div>
+        <div id="messageQueue" class="h-[300px] overflow-y-auto p-2">
+          <div class="text-gray-500 text-center py-8">
+            No messages yet. Connect to a YouTube live stream or add messages manually.
+          </div>
+        </div>
+      </div>
+
+      <!-- Superchat Queue -->
+      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between p-4 border-b border-gray-800">
+          <h2 class="font-semibold flex items-center gap-2">
+            <span class="text-yellow-500">💰</span> Superchats
+          </h2>
+          <span class="text-gray-500 text-sm"><span id="superchatCount">0</span> superchats</span>
+        </div>
+        <div id="superchatQueue" class="h-[300px] overflow-y-auto p-2">
+          <div class="text-gray-500 text-center py-8">
+            No superchats yet.
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinned Display -->
+      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-gray-800">
+          <h2 class="font-semibold">Pinned Display</h2>
+          <button onclick="unpinMessage()" id="clearPinBtn" class="text-gray-500 hover:text-red-500 text-sm transition hidden">
+            Clear Pin
+          </button>
+        </div>
+        <div id="pinnedPreview" class="p-4 min-h-[200px] flex items-center justify-center">
+          <div class="text-gray-500 text-center">
+            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            Click on a message to pin it
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Add Section -->
+    <div class="bg-[#1a1a1a] rounded-xl p-4 mt-4">
+      <h3 class="font-semibold mb-3">Add Message Manually</h3>
+      <div class="flex gap-3 flex-wrap">
+        <input
+          type="text"
+          id="manualAuthor"
+          placeholder="@username"
+          class="w-40 bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+        >
+        <input
+          type="text"
+          id="manualMessage"
+          placeholder="Message text..."
+          class="flex-1 min-w-[200px] bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+        >
+        <div class="flex items-center gap-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="isSuperchat" class="w-4 h-4 rounded">
+            <span class="text-sm">Superchat</span>
+          </label>
+          <input
+            type="number"
+            id="superchatAmount"
+            placeholder="$5.00"
+            step="0.01"
+            min="1"
+            class="w-24 bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 hidden"
+          >
+        </div>
+        <button onclick="addManualMessage()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
+          + Add
+        </button>
+      </div>
+    </div>
+
+    <!-- Ticker Settings -->
+    <div class="bg-[#1a1a1a] rounded-xl p-4 mt-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold">Ticker Settings</h3>
+        <div class="flex items-center gap-2">
+          <button onclick="openTicker()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-medium transition">
+            Open Ticker
+          </button>
+          <button onclick="openChatOBS()" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-medium transition">
+            Open Chat OBS
+          </button>
+        </div>
+      </div>
+      <div class="flex gap-3 flex-wrap items-center mb-4">
+        <label class="text-sm text-gray-400">Speed:</label>
+        <input
+          type="range"
+          id="tickerSpeed"
+          min="30"
+          max="200"
+          value="100"
+          class="w-32"
+        >
+        <span id="tickerSpeedValue" class="text-sm">100px/s</span>
+        <label class="flex items-center gap-2 ml-4 cursor-pointer">
+          <input type="checkbox" id="showTicker" checked class="w-4 h-4 rounded">
+          <span class="text-sm">Show Ticker</span>
+        </label>
+      </div>
+
+      <!-- Ticker Items Management -->
+      <div class="border-t border-gray-800 pt-4 mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-sm font-medium text-gray-300">Ticker Items</h4>
+          <span class="text-xs text-gray-500"><span id="tickerItemCount">0</span> items</span>
+        </div>
+
+        <!-- Ticker Items List -->
+        <div id="tickerItemsList" class="space-y-2 mb-4 max-h-[200px] overflow-y-auto">
+          <div class="text-gray-500 text-sm text-center py-4">
+            No ticker items. Add items below.
+          </div>
+        </div>
+
+        <!-- Add Ticker Item -->
+        <div class="flex gap-2 flex-wrap">
+          <input
+            type="text"
+            id="tickerItemTitle"
+            placeholder="Title (e.g., BREAKING)"
+            class="w-32 bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+          >
+          <input
+            type="text"
+            id="tickerItemContent"
+            placeholder="Content text..."
+            class="flex-1 min-w-[200px] bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+          >
+          <button onclick="addTickerItem()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+            + Add Item
+          </button>
+        </div>
+
+        <!-- Bulk Ticker Input -->
+        <div class="border-t border-gray-800 pt-4 mt-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-medium text-gray-300">Bulk Import (paste ticker string)</h4>
+            <span class="text-xs text-gray-500">Format: TITLE :: content | TITLE :: content</span>
+          </div>
+          <textarea
+            id="bulkTickerInput"
+            rows="3"
+            placeholder="Paste your ticker string here... Items separated by | and title/content by ::"
+            class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 resize-none"
+          ></textarea>
+          <div class="flex gap-2 mt-2">
+            <button onclick="parseBulkTicker()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition">
+              Parse & Add Items
+            </button>
+            <button onclick="parseBulkTicker(true)" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-sm font-semibold transition">
+              Replace All Items
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let queue = [];
+    let pinnedMessage = null;
+    let isConnected = false;
+    let videoId = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let tickerItems = [];
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+      updateStatus('connecting');
+
+      ws.onopen = () => {
+        console.log('[WebSocket] Connected');
+        reconnectAttempts = 0;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (e) {
+          console.error('[WebSocket] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[WebSocket] Disconnected');
+        updateStatus('disconnected');
+
+        // Attempt to reconnect
+        if (reconnectAttempts < maxReconnectAttempts) {
+          reconnectAttempts++;
+          setTimeout(connectWebSocket, 2000 * reconnectAttempts);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('[WebSocket] Error:', error);
+      };
+    }
+
+    function handleMessage(data) {
+      console.log('[WebSocket] Received:', data.type);
+
+      switch (data.type) {
+        case 'init':
+          queue = data.data.queue || [];
+          pinnedMessage = data.data.pinnedMessage;
+          isConnected = data.data.isConnected;
+          videoId = data.data.videoId;
+          tickerItems = data.data.tickerItems || [];
+          updateUI();
+          renderTickerItems();
+          break;
+
+        case 'status':
+          isConnected = data.data.connected;
+          videoId = data.data.videoId;
+          updateConnectionUI();
+          break;
+
+        case 'queue_update':
+          queue = data.data.queue || [];
+          renderQueue();
+          break;
+
+        case 'message':
+          // Already added via queue_update
+          break;
+
+        case 'superchat':
+          // Play sound or show notification for superchat
+          playSuperchatSound();
+          break;
+
+        case 'pin':
+          pinnedMessage = data.data.message;
+          renderPinnedPreview();
+          renderQueue(); // Update pinned status in queue
+          break;
+
+        case 'ticker_update':
+          if (data.data.tickerSpeed !== undefined) {
+            document.getElementById('tickerSpeed').value = data.data.tickerSpeed;
+            document.getElementById('tickerSpeedValue').textContent = data.data.tickerSpeed + 'px/s';
+          }
+          if (data.data.showTicker !== undefined) {
+            document.getElementById('showTicker').checked = data.data.showTicker;
+          }
+          if (data.data.tickerItems) {
+            tickerItems = data.data.tickerItems;
+            renderTickerItems();
+          }
+          break;
+
+        case 'error':
+          showError(data.data.message);
+          break;
+      }
+    }
+
+    function send(type, data = {}) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type, ...data }));
+      }
+    }
+
+    // ========================================================================
+    // UI Updates
+    // ========================================================================
+    function updateUI() {
+      updateConnectionUI();
+      renderQueue();
+      renderPinnedPreview();
+    }
+
+    function updateStatus(status) {
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+
+      dot.className = 'status-dot ' + status;
+
+      if (status === 'connected') {
+        text.textContent = 'Connected to YouTube';
+      } else if (status === 'connecting') {
+        text.textContent = 'Connecting...';
+      } else {
+        text.textContent = isConnected ? 'Connected' : 'Disconnected';
+      }
+    }
+
+    function updateConnectionUI() {
+      const connectBtn = document.getElementById('connectBtn');
+      const disconnectBtn = document.getElementById('disconnectBtn');
+      const videoInfo = document.getElementById('videoInfo');
+      const videoIdDisplay = document.getElementById('videoIdDisplay');
+
+      if (isConnected) {
+        connectBtn.classList.add('hidden');
+        disconnectBtn.classList.remove('hidden');
+        videoInfo.classList.remove('hidden');
+        videoIdDisplay.textContent = videoId;
+        updateStatus('connected');
+      } else {
+        connectBtn.classList.remove('hidden');
+        disconnectBtn.classList.add('hidden');
+        videoInfo.classList.add('hidden');
+        updateStatus('disconnected');
+      }
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('messageQueue');
+      const countEl = document.getElementById('queueCount');
+
+      // Filter out superchats for the regular queue
+      const regularMessages = queue.filter(msg => !msg.isSuperchat);
+      countEl.textContent = regularMessages.length;
+
+      if (regularMessages.length === 0) {
+        container.innerHTML = `
+          <div class="text-gray-500 text-center py-8">
+            No messages yet. Connect to a YouTube live stream or add messages manually.
+          </div>
+        `;
+      } else {
+        // Reverse to show newest at top
+        const reversed = [...regularMessages].reverse();
+        container.innerHTML = reversed.map(msg => {
+          const isPinned = pinnedMessage && pinnedMessage.id === msg.id;
+
+          return `
+            <div class="message-item p-3 rounded-lg mb-2 cursor-pointer transition ${isPinned ? 'pinned' : ''}"
+                 onclick="pinMessage('${msg.id}')">
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0">
+                  ${msg.authorPhoto
+                    ? `<img src="${msg.authorPhoto}" class="w-8 h-8 rounded-full" alt="">`
+                    : `<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">${msg.author[0]?.toUpperCase() || '?'}</div>`
+                  }
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-sm">${escapeHtml(msg.author)}</span>
+                    ${msg.badges?.includes('member') ? '<span class="text-xs bg-green-600 px-1.5 rounded">Member</span>' : ''}
+                    ${msg.badges?.includes('moderator') ? '<span class="text-xs bg-blue-600 px-1.5 rounded">Mod</span>' : ''}
+                  </div>
+                  <p class="text-sm text-gray-300 break-words">${escapeHtml(msg.message)}</p>
+                </div>
+                <button class="pin-btn flex-shrink-0 p-1 hover:bg-white/10 rounded transition" onclick="event.stopPropagation(); pinMessage('${msg.id}')">
+                  <svg class="w-5 h-5 ${isPinned ? 'text-red-500' : 'text-gray-500'}" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Auto-scroll to top (newest messages)
+        container.scrollTop = 0;
+      }
+
+      // Also render superchats
+      renderSuperchatQueue();
+    }
+
+    function renderSuperchatQueue() {
+      const container = document.getElementById('superchatQueue');
+      const countEl = document.getElementById('superchatCount');
+
+      // Filter for superchats only
+      const superchats = queue.filter(msg => msg.isSuperchat);
+      countEl.textContent = superchats.length;
+
+      if (superchats.length === 0) {
+        container.innerHTML = `
+          <div class="text-gray-500 text-center py-8">
+            No superchats yet.
+          </div>
+        `;
+        return;
+      }
+
+      // Reverse to show newest at top
+      const reversed = [...superchats].reverse();
+      container.innerHTML = reversed.map(msg => {
+        const isPinned = pinnedMessage && pinnedMessage.id === msg.id;
+        const tierClass = `tier-${msg.tier?.tier || 1}`;
+
+        return `
+          <div class="message-item p-3 rounded-lg mb-2 cursor-pointer transition ${isPinned ? 'pinned' : ''} ${tierClass}"
+               onclick="pinMessage('${msg.id}')">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0">
+                ${msg.authorPhoto
+                  ? `<img src="${msg.authorPhoto}" class="w-8 h-8 rounded-full" alt="">`
+                  : `<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">${msg.author[0]?.toUpperCase() || '?'}</div>`
+                }
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-sm text-white">${escapeHtml(msg.author)}</span>
+                  <span class="text-xs font-bold text-white">${msg.amountFormatted}</span>
+                </div>
+                <p class="text-sm text-white break-words">${escapeHtml(msg.message)}</p>
+              </div>
+              <button class="pin-btn flex-shrink-0 p-1 hover:bg-white/10 rounded transition" onclick="event.stopPropagation(); pinMessage('${msg.id}')">
+                <svg class="w-5 h-5 ${isPinned ? 'text-red-500' : 'text-white'}" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto-scroll to top (newest superchats)
+      container.scrollTop = 0;
+    }
+
+    function renderPinnedPreview() {
+      const container = document.getElementById('pinnedPreview');
+      const clearBtn = document.getElementById('clearPinBtn');
+
+      if (!pinnedMessage) {
+        clearBtn.classList.add('hidden');
+        container.innerHTML = `
+          <div class="text-gray-500 text-center">
+            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            Click on a message to pin it
+          </div>
+        `;
+        return;
+      }
+
+      clearBtn.classList.remove('hidden');
+      const tierClass = pinnedMessage.isSuperchat ? `tier-${pinnedMessage.tier?.tier || 1}` : 'bg-[#0f0f0f]';
+
+      container.innerHTML = `
+        <div class="w-full ${tierClass} rounded-xl p-4">
+          <div class="flex items-center gap-3 mb-3">
+            ${pinnedMessage.authorPhoto
+              ? `<img src="${pinnedMessage.authorPhoto}" class="w-10 h-10 rounded-full" alt="">`
+              : `<div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-lg font-bold">${pinnedMessage.author[0]?.toUpperCase() || '?'}</div>`
+            }
+            <div>
+              <div class="font-bold">${escapeHtml(pinnedMessage.author)}</div>
+              ${pinnedMessage.isSuperchat ? `<div class="text-sm font-semibold">${pinnedMessage.amountFormatted}</div>` : ''}
+            </div>
+          </div>
+          <p class="text-lg leading-relaxed">"${escapeHtml(pinnedMessage.message)}"</p>
+        </div>
+      `;
+    }
+
+    // ========================================================================
+    // Actions
+    // ========================================================================
+    function connectToYouTube() {
+      const url = document.getElementById('youtubeUrl').value.trim();
+      if (!url) {
+        showError('Please enter a YouTube URL or video ID');
+        return;
+      }
+      send('connect', { url });
+    }
+
+    function disconnectFromYouTube() {
+      send('disconnect');
+    }
+
+    function pinMessage(messageId) {
+      // Toggle: if clicking the already-pinned message, unpin it
+      if (pinnedMessage && pinnedMessage.id === messageId) {
+        send('unpin');
+      } else {
+        send('pin_message', { messageId });
+      }
+    }
+
+    function unpinMessage() {
+      send('unpin');
+    }
+
+    function addManualMessage() {
+      const author = document.getElementById('manualAuthor').value.trim() || 'Anonymous';
+      const message = document.getElementById('manualMessage').value.trim();
+      const isSuperchat = document.getElementById('isSuperchat').checked;
+      const amount = parseFloat(document.getElementById('superchatAmount').value) || 0;
+
+      if (!message) {
+        showError('Please enter a message');
+        return;
+      }
+
+      send('add_to_queue', { author, message, isSuperchat, amount });
+
+      // Clear inputs
+      document.getElementById('manualMessage').value = '';
+    }
+
+    function clearQueue() {
+      if (confirm('Are you sure you want to clear all messages?')) {
+        send('clear_queue');
+      }
+    }
+
+    function openTicker() {
+      window.open('/ticker.html?mode=parallax', 'ticker', 'width=1920,height=100');
+    }
+
+    function openChatOBS() {
+      window.open('/youtube_chat_obs.html', 'chatobs', 'width=600,height=300');
+    }
+
+    // ========================================================================
+    // Ticker Items Management
+    // ========================================================================
+    function renderTickerItems() {
+      const container = document.getElementById('tickerItemsList');
+      const countEl = document.getElementById('tickerItemCount');
+
+      countEl.textContent = tickerItems.length;
+
+      if (tickerItems.length === 0) {
+        container.innerHTML = `
+          <div class="text-gray-500 text-sm text-center py-4">
+            No ticker items. Add items below.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = tickerItems.map((item, index) => `
+        <div class="flex items-center gap-2 p-2 bg-[#0f0f0f] rounded-lg group">
+          <div class="flex-shrink-0 px-2 py-1 bg-red-600 rounded text-xs font-bold uppercase">
+            ${escapeHtml(item.title || 'NEWS')}
+          </div>
+          <div class="flex-1 text-sm text-gray-300 truncate">
+            ${escapeHtml(item.content || '')}
+          </div>
+          <div class="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+            <button onclick="moveTickerItem(${index}, -1)" class="p-1 hover:bg-white/10 rounded" title="Move up">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+              </svg>
+            </button>
+            <button onclick="moveTickerItem(${index}, 1)" class="p-1 hover:bg-white/10 rounded" title="Move down">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <button onclick="removeTickerItem(${index})" class="p-1 hover:bg-red-500/20 rounded text-red-500" title="Remove">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addTickerItem() {
+      const title = document.getElementById('tickerItemTitle').value.trim() || 'NEWS';
+      const content = document.getElementById('tickerItemContent').value.trim();
+
+      if (!content) {
+        showError('Please enter content for the ticker item');
+        return;
+      }
+
+      tickerItems.push({ title, content });
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+
+      // Clear inputs
+      document.getElementById('tickerItemTitle').value = '';
+      document.getElementById('tickerItemContent').value = '';
+    }
+
+    function removeTickerItem(index) {
+      tickerItems.splice(index, 1);
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+    }
+
+    function moveTickerItem(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= tickerItems.length) return;
+
+      const item = tickerItems.splice(index, 1)[0];
+      tickerItems.splice(newIndex, 0, item);
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+    }
+
+    function parseBulkTicker(replaceAll = false) {
+      const input = document.getElementById('bulkTickerInput').value.trim();
+      if (!input) {
+        showError('Please paste a ticker string to parse');
+        return;
+      }
+
+      // Split by | to get individual items
+      const segments = input.split('|').map(s => s.trim()).filter(s => s);
+
+      if (segments.length === 0) {
+        showError('No valid ticker items found');
+        return;
+      }
+
+      const newItems = [];
+
+      for (const segment of segments) {
+        // Try to split by :: to get title and content
+        if (segment.includes('::')) {
+          const parts = segment.split('::').map(p => p.trim());
+          if (parts.length >= 2) {
+            // First part is title (extract text, remove emojis for clean title)
+            let title = parts[0].replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+            // If title is empty after removing emojis, use a default
+            if (!title) title = 'NEWS';
+            // Keep title short - take first word or two
+            title = title.split(' ').slice(0, 2).join(' ').toUpperCase();
+
+            // Rest is content (keep emojis)
+            const content = parts.slice(1).join('::').trim();
+
+            newItems.push({ title, content });
+          }
+        } else {
+          // No :: separator, use NEWS as default title
+          newItems.push({ title: 'NEWS', content: segment });
+        }
+      }
+
+      if (newItems.length === 0) {
+        showError('Could not parse any valid ticker items');
+        return;
+      }
+
+      // Either replace all or append
+      if (replaceAll) {
+        tickerItems = newItems;
+      } else {
+        tickerItems = [...tickerItems, ...newItems];
+      }
+
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+
+      // Clear the textarea
+      document.getElementById('bulkTickerInput').value = '';
+
+      // Show success message
+      console.log(`[Ticker] Parsed ${newItems.length} items`);
+    }
+
+    // ========================================================================
+    // Ticker Settings
+    // ========================================================================
+    document.getElementById('tickerSpeed').addEventListener('input', (e) => {
+      document.getElementById('tickerSpeedValue').textContent = e.target.value + 'px/s';
+      send('update_ticker', { speed: parseInt(e.target.value) });
+    });
+
+    document.getElementById('showTicker').addEventListener('change', (e) => {
+      send('update_ticker', { show: e.target.checked });
+    });
+
+    // Toggle superchat amount input
+    document.getElementById('isSuperchat').addEventListener('change', (e) => {
+      document.getElementById('superchatAmount').classList.toggle('hidden', !e.target.checked);
+    });
+
+    // ========================================================================
+    // Utilities
+    // ========================================================================
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showError(message) {
+      // Simple alert for now - could be improved with toast notifications
+      alert('Error: ' + message);
+    }
+
+    function playSuperchatSound() {
+      // Could add audio playback here
+      console.log('[Sound] Superchat received!');
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Handle Enter key on inputs
+    document.getElementById('youtubeUrl').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') connectToYouTube();
+    });
+
+    document.getElementById('manualMessage').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addManualMessage();
+    });
+  </script>
+</body>
+</html>

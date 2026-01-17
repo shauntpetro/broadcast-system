@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Chat OBS Output</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Source Sans Pro', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding: 40px;
+    }
+
+    /* ========================================
+       Ripped Paper / Tape Aesthetic
+    ======================================== */
+
+    /* SVG filter for rough edges */
+    .svg-filters {
+      position: absolute;
+      width: 0;
+      height: 0;
+    }
+
+    /* Main Container */
+    .pinned-container {
+      visibility: hidden;
+      opacity: 0;
+      max-width: 600px;
+      min-width: 420px;
+      position: relative;
+    }
+
+    /* Tape pieces */
+    .tape {
+      position: absolute;
+      width: 80px;
+      height: 32px;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 235, 180, 0.85) 0%,
+        rgba(245, 222, 160, 0.9) 50%,
+        rgba(235, 210, 145, 0.85) 100%
+      );
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      z-index: 10;
+      transform-origin: center center;
+    }
+
+    .tape::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(200, 180, 120, 0.15) 3px,
+        rgba(200, 180, 120, 0.15) 4px
+      );
+    }
+
+    .tape-left {
+      top: -12px;
+      left: 30px;
+      transform: rotate(-8deg);
+    }
+
+    .tape-right {
+      top: -10px;
+      right: 40px;
+      transform: rotate(5deg);
+    }
+
+    .tape-bottom-left {
+      bottom: -14px;
+      left: 50px;
+      transform: rotate(6deg);
+    }
+
+    .tape-bottom-right {
+      bottom: -12px;
+      right: 30px;
+      transform: rotate(-4deg);
+    }
+
+    /* Label Badge - Red Accent Bar */
+    .pinned-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: var(--accent-color, #c41e3a);
+      z-index: 5;
+    }
+
+    /* Bottom accent bar */
+    .bottom-accent {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: var(--accent-color, #c41e3a);
+      z-index: 5;
+    }
+
+    /* Ripped edge effect - top */
+    .ripped-edge-top {
+      position: absolute;
+      top: 8px;
+      left: 0;
+      right: 0;
+      height: 16px;
+      background: white;
+      z-index: 4;
+      clip-path: polygon(
+        0% 100%,
+        2% 70%, 4% 100%, 6% 65%, 8% 95%, 10% 70%,
+        12% 100%, 14% 60%, 16% 90%, 18% 70%, 20% 100%,
+        22% 75%, 24% 95%, 26% 65%, 28% 100%, 30% 70%,
+        32% 90%, 34% 60%, 36% 100%, 38% 75%, 40% 95%,
+        42% 65%, 44% 100%, 46% 70%, 48% 90%, 50% 65%,
+        52% 100%, 54% 75%, 56% 90%, 58% 65%, 60% 100%,
+        62% 70%, 64% 95%, 66% 60%, 68% 100%, 70% 75%,
+        72% 90%, 74% 65%, 76% 100%, 78% 70%, 80% 95%,
+        82% 65%, 84% 100%, 86% 75%, 88% 90%, 90% 65%,
+        92% 100%, 94% 70%, 96% 90%, 98% 65%, 100% 100%
+      );
+    }
+
+    /* Ripped edge effect - bottom */
+    .ripped-edge-bottom {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      height: 16px;
+      background: white;
+      z-index: 4;
+      clip-path: polygon(
+        0% 0%,
+        2% 35%, 4% 0%, 6% 40%, 8% 10%, 10% 35%,
+        12% 0%, 14% 45%, 16% 15%, 18% 35%, 20% 0%,
+        22% 30%, 24% 10%, 26% 40%, 28% 0%, 30% 35%,
+        32% 15%, 34% 45%, 36% 0%, 38% 30%, 40% 10%,
+        42% 40%, 44% 0%, 46% 35%, 48% 15%, 50% 40%,
+        52% 0%, 54% 30%, 56% 15%, 58% 40%, 60% 0%,
+        62% 35%, 64% 10%, 66% 45%, 68% 0%, 70% 30%,
+        72% 15%, 74% 40%, 76% 0%, 78% 35%, 80% 10%,
+        82% 40%, 84% 0%, 86% 30%, 88% 15%, 90% 40%,
+        92% 0%, 94% 35%, 96% 15%, 98% 40%, 100% 0%
+      );
+    }
+
+    /* Main Paper Card */
+    .pinned-card {
+      background: white;
+      padding: 32px 28px 32px 28px;
+      position: relative;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 8px 40px rgba(0, 0, 0, 0.1);
+      margin: 8px 0;
+    }
+
+    /* Paper texture overlay */
+    .pinned-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.01) 2px,
+          rgba(0, 0, 0, 0.01) 3px
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Content wrapper */
+    .content-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    /* Avatar */
+    .avatar {
+      flex-shrink: 0;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--accent-color, #c41e3a) 0%, rgba(0,0,0,0.2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 3px white,
+        0 0 0 5px var(--accent-color, #c41e3a),
+        0 4px 12px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar .initial {
+      font-family: 'Oswald', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Text content */
+    .text-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Type Label */
+    .type-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-color, #c41e3a);
+      margin-bottom: 4px;
+    }
+
+    /* Username - Heavy Italic */
+    .username {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      font-style: italic;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      line-height: 1.1;
+    }
+
+    /* Message - Lighter font */
+    .message {
+      font-family: 'Source Sans Pro', serif;
+      font-size: 24px;
+      font-weight: 300;
+      font-style: italic;
+      color: #333;
+      line-height: 1.4;
+      margin-top: 8px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    /* Quote mark */
+    .message::before {
+      content: '"';
+      position: absolute;
+      left: 0;
+      top: -5px;
+      font-size: 40px;
+      color: var(--accent-color, #c41e3a);
+      font-family: Georgia, serif;
+      opacity: 0.6;
+    }
+
+    /* Amount for Superchats */
+    .amount {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--accent-color, #c41e3a);
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      background: #f0f0f0;
+      color: #666;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    .badge.member { background: #2e7d32; color: white; }
+    .badge.mod { background: #1565c0; color: white; }
+    .badge.owner { background: #f57c00; color: white; }
+    .badge.verified { background: #7c4dff; color: white; }
+
+    /* ========================================
+       Superchat Tier Colors
+    ======================================== */
+    .tier-blue { --accent-color: #1e88e5; }
+    .tier-teal { --accent-color: #00bcd4; }
+    .tier-yellow { --accent-color: #f9a825; }
+    .tier-orange { --accent-color: #f57c00; }
+    .tier-magenta { --accent-color: #e91e63; }
+    .tier-red { --accent-color: #c41e3a; }
+    .tier-comment { --accent-color: #c41e3a; }
+
+    /* Tier 7 special effect */
+    .tier-7 .pinned-card {
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 8px 40px rgba(0, 0, 0, 0.1),
+        0 0 30px rgba(196, 30, 58, 0.3);
+    }
+
+    /* ========================================
+       Waiting State (debug only)
+    ======================================== */
+    .waiting-message {
+      display: none;
+      color: rgba(255, 255, 255, 0.3);
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+    }
+
+    body.debug .waiting-message {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pinned Comment Display (click to unpin) -->
+  <div id="pinnedContainer" class="pinned-container" onclick="unpinComment()" style="cursor: pointer;" title="Click to unpin">
+    <!-- Tape pieces -->
+    <div class="tape tape-left" id="tapeLeft"></div>
+    <div class="tape tape-right" id="tapeRight"></div>
+
+    <!-- Top accent bar and ripped edge -->
+    <div class="pinned-label" id="pinnedLabel"></div>
+    <div class="ripped-edge-top" id="rippedTop"></div>
+
+    <!-- Main Paper Card -->
+    <div class="pinned-card" id="pinnedCard">
+      <div class="content-wrapper" id="contentWrapper">
+        <!-- Avatar -->
+        <div class="avatar" id="avatar">
+          <span class="initial" id="avatarInitial">?</span>
+          <img id="avatarImg" src="" alt="" style="display: none;">
+        </div>
+        <!-- Text Content -->
+        <div class="text-content">
+          <div class="type-label" id="typeLabel">COMMENT</div>
+          <div class="header" id="header">
+            <span class="username" id="username">Username</span>
+            <span class="badge" id="badge" style="display: none;"></span>
+          </div>
+          <div class="message" id="message">Message text goes here</div>
+          <div class="amount" id="amount" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom ripped edge and accent bar -->
+    <div class="ripped-edge-bottom" id="rippedBottom"></div>
+    <div class="bottom-accent" id="bottomAccent"></div>
+
+    <!-- Bottom tape pieces -->
+    <div class="tape tape-bottom-left" id="tapeBottomLeft"></div>
+    <div class="tape tape-bottom-right" id="tapeBottomRight"></div>
+  </div>
+
+  <!-- Debug waiting message -->
+  <div class="waiting-message">Waiting for pinned comment...</div>
+
+  <script>
+    // ========================================================================
+    // Configuration
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug') === 'true';
+
+    if (debug) {
+      document.body.classList.add('debug');
+    }
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let currentPinned = null;
+    let isAnimating = false;
+
+    // DOM Elements
+    const container = document.getElementById('pinnedContainer');
+    const tapeLeft = document.getElementById('tapeLeft');
+    const tapeRight = document.getElementById('tapeRight');
+    const tapeBottomLeft = document.getElementById('tapeBottomLeft');
+    const tapeBottomRight = document.getElementById('tapeBottomRight');
+    const labelEl = document.getElementById('pinnedLabel');
+    const rippedTop = document.getElementById('rippedTop');
+    const cardEl = document.getElementById('pinnedCard');
+    const contentWrapper = document.getElementById('contentWrapper');
+    const avatarEl = document.getElementById('avatar');
+    const avatarInitialEl = document.getElementById('avatarInitial');
+    const avatarImgEl = document.getElementById('avatarImg');
+    const typeLabel = document.getElementById('typeLabel');
+    const headerEl = document.getElementById('header');
+    const usernameEl = document.getElementById('username');
+    const badgeEl = document.getElementById('badge');
+    const messageEl = document.getElementById('message');
+    const amountEl = document.getElementById('amount');
+    const rippedBottom = document.getElementById('rippedBottom');
+    const bottomAccent = document.getElementById('bottomAccent');
+
+    // ========================================================================
+    // Superchat Tier System
+    // ========================================================================
+    function getTier(amount) {
+      if (!amount) return { tier: 'comment', tierNum: 0, color: '#c41e3a' };
+
+      const num = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+
+      if (num >= 100) return { tier: 'red', tierNum: 7, color: '#c41e3a' };
+      if (num >= 50) return { tier: 'red', tierNum: 6, color: '#c41e3a' };
+      if (num >= 20) return { tier: 'magenta', tierNum: 5, color: '#e91e63' };
+      if (num >= 10) return { tier: 'orange', tierNum: 4, color: '#f57c00' };
+      if (num >= 5) return { tier: 'yellow', tierNum: 3, color: '#f9a825' };
+      if (num >= 2) return { tier: 'teal', tierNum: 2, color: '#00bcd4' };
+      if (num >= 1) return { tier: 'blue', tierNum: 1, color: '#1e88e5' };
+
+      return { tier: 'comment', tierNum: 0, color: '#c41e3a' };
+    }
+
+    // ========================================================================
+    // Render Pinned Comment
+    // ========================================================================
+    function renderPinned(pinned) {
+      if (!pinned) return;
+
+      const isSuperchat = pinned.isSuperchat || pinned.type === 'superchat';
+      const tierInfo = isSuperchat ? getTier(pinned.amount) : { tier: 'comment', tierNum: 0, color: '#c41e3a' };
+
+      // Remove old tier classes
+      container.className = 'pinned-container';
+      container.classList.add(`tier-${tierInfo.tier}`);
+      if (tierInfo.tierNum === 7) {
+        container.classList.add('tier-7');
+      }
+
+      // Set CSS variable for accent color
+      container.style.setProperty('--accent-color', tierInfo.color);
+
+      // Update avatar
+      if (pinned.authorPhoto || pinned.avatar) {
+        avatarImgEl.src = pinned.authorPhoto || pinned.avatar;
+        avatarImgEl.style.display = 'block';
+        avatarInitialEl.style.display = 'none';
+      } else {
+        const initial = (pinned.author || pinned.username || 'U')[0].toUpperCase();
+        avatarInitialEl.textContent = initial;
+        avatarInitialEl.style.display = 'block';
+        avatarImgEl.style.display = 'none';
+      }
+
+      // Update type label
+      typeLabel.textContent = isSuperchat ? 'SUPERCHAT' : 'COMMENT';
+
+      // Update username
+      usernameEl.textContent = pinned.author || pinned.username || 'Unknown';
+
+      // Update badge
+      const badges = pinned.badges || [];
+      if (badges.includes('owner') || pinned.isOwner) {
+        badgeEl.textContent = 'OWNER';
+        badgeEl.className = 'badge owner';
+        badgeEl.style.display = 'inline-block';
+      } else if (badges.includes('moderator') || pinned.isMod) {
+        badgeEl.textContent = 'MOD';
+        badgeEl.className = 'badge mod';
+        badgeEl.style.display = 'inline-block';
+      } else if (badges.includes('member') || pinned.isMember) {
+        badgeEl.textContent = 'MEMBER';
+        badgeEl.className = 'badge member';
+        badgeEl.style.display = 'inline-block';
+      } else if (badges.includes('verified')) {
+        badgeEl.textContent = 'VERIFIED';
+        badgeEl.className = 'badge verified';
+        badgeEl.style.display = 'inline-block';
+      } else {
+        badgeEl.style.display = 'none';
+      }
+
+      // Update message
+      messageEl.textContent = pinned.message || '';
+
+      // Update amount
+      if (isSuperchat && (pinned.amountFormatted || pinned.amount)) {
+        amountEl.textContent = pinned.amountFormatted || `$${pinned.amount}`;
+        amountEl.style.display = 'block';
+      } else {
+        amountEl.style.display = 'none';
+      }
+    }
+
+    // ========================================================================
+    // Luxurious Staggered Animations - Tape/Paper Style
+    // ========================================================================
+    function animateIn(pinned) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      renderPinned(pinned);
+      currentPinned = pinned;
+
+      // Kill any existing animations
+      gsap.killTweensOf([container, tapeLeft, tapeRight, tapeBottomLeft, tapeBottomRight,
+        labelEl, rippedTop, cardEl, contentWrapper, avatarEl, typeLabel, headerEl, messageEl, amountEl,
+        rippedBottom, bottomAccent]);
+
+      // Set initial states
+      gsap.set(container, { visibility: 'visible', opacity: 1 });
+
+      // Card starts scaled down and from the left
+      gsap.set(cardEl, { x: -80, opacity: 0, scaleY: 0.9 });
+      gsap.set(labelEl, { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set(bottomAccent, { scaleX: 0, transformOrigin: 'right center' });
+      gsap.set(rippedTop, { opacity: 0, y: -10 });
+      gsap.set(rippedBottom, { opacity: 0, y: 10 });
+
+      // Tape pieces start invisible and rotated extra
+      gsap.set(tapeLeft, { opacity: 0, rotation: -30, scale: 0.5 });
+      gsap.set(tapeRight, { opacity: 0, rotation: 25, scale: 0.5 });
+      gsap.set(tapeBottomLeft, { opacity: 0, rotation: 30, scale: 0.5 });
+      gsap.set(tapeBottomRight, { opacity: 0, rotation: -25, scale: 0.5 });
+
+      // Content starts faded
+      gsap.set(contentWrapper, { opacity: 0 });
+      gsap.set(avatarEl, { scale: 0, rotation: -90, opacity: 0 });
+      gsap.set(typeLabel, { y: -15, opacity: 0 });
+      gsap.set(headerEl, { x: -30, opacity: 0 });
+      gsap.set(messageEl, { y: 20, opacity: 0 });
+      gsap.set(amountEl, { opacity: 0, scale: 0.8 });
+
+      // Create staggered timeline
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+          console.log('[OBS] Animation complete:', pinned.author);
+        }
+      });
+
+      // 1. Card slides in and scales
+      tl.to(cardEl, {
+        x: 0,
+        opacity: 1,
+        scaleY: 1,
+        duration: 0.5,
+        ease: 'power3.out'
+      });
+
+      // 2. Top accent bar sweeps in
+      tl.to(labelEl, {
+        scaleX: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.3');
+
+      // 3. Bottom accent bar sweeps in (opposite direction)
+      tl.to(bottomAccent, {
+        scaleX: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.35');
+
+      // 4. Ripped edges fade in
+      tl.to([rippedTop, rippedBottom], {
+        opacity: 1,
+        y: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+        stagger: 0.05
+      }, '-=0.25');
+
+      // 5. Tape pieces slap down with bounce
+      tl.to(tapeLeft, {
+        opacity: 1,
+        rotation: -8,
+        scale: 1,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, '-=0.2');
+
+      tl.to(tapeRight, {
+        opacity: 1,
+        rotation: 5,
+        scale: 1,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, '-=0.35');
+
+      tl.to(tapeBottomLeft, {
+        opacity: 1,
+        rotation: 6,
+        scale: 1,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, '-=0.3');
+
+      tl.to(tapeBottomRight, {
+        opacity: 1,
+        rotation: -4,
+        scale: 1,
+        duration: 0.4,
+        ease: 'back.out(2)'
+      }, '-=0.35');
+
+      // 6. Content wrapper fades in
+      tl.to(contentWrapper, {
+        opacity: 1,
+        duration: 0.2
+      }, '-=0.3');
+
+      // 7. Avatar spins in
+      tl.to(avatarEl, {
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: 'back.out(1.7)'
+      }, '-=0.15');
+
+      // 8. Type label drops in
+      tl.to(typeLabel, {
+        y: 0,
+        opacity: 1,
+        duration: 0.35,
+        ease: 'power2.out'
+      }, '-=0.2');
+
+      // 8. Username slides in
+      tl.to(headerEl, {
+        x: 0,
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.2');
+
+      // 9. Message rises up
+      tl.to(messageEl, {
+        y: 0,
+        opacity: 1,
+        duration: 0.45,
+        ease: 'power2.out'
+      }, '-=0.25');
+
+      // 10. Amount pops in (if superchat)
+      if (amountEl.style.display !== 'none') {
+        tl.to(amountEl, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.35,
+          ease: 'back.out(1.5)'
+        }, '-=0.2');
+      }
+
+      console.log('[OBS] Animating in:', pinned.author);
+    }
+
+    function animateOut(callback) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      // Create exit timeline
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+          currentPinned = null;
+          isAnimating = false;
+          if (callback) callback();
+          console.log('[OBS] Animation out complete');
+        }
+      });
+
+      // 1. Content fades out quickly
+      tl.to([typeLabel, headerEl, messageEl, amountEl], {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      });
+
+      // 1.5 Avatar shrinks out
+      tl.to(avatarEl, {
+        scale: 0.5,
+        rotation: 45,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.15');
+
+      // 2. Tape pieces peel off
+      tl.to([tapeLeft, tapeRight], {
+        opacity: 0,
+        rotation: '+=20',
+        scale: 0.6,
+        duration: 0.3,
+        ease: 'power2.in',
+        stagger: 0.05
+      }, '-=0.1');
+
+      tl.to([tapeBottomLeft, tapeBottomRight], {
+        opacity: 0,
+        rotation: '-=15',
+        scale: 0.6,
+        duration: 0.3,
+        ease: 'power2.in',
+        stagger: 0.05
+      }, '-=0.25');
+
+      // 3. Ripped edges fade
+      tl.to([rippedTop, rippedBottom], {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // 4. Accent bars retract
+      tl.to(labelEl, {
+        scaleX: 0,
+        duration: 0.3,
+        ease: 'power2.in'
+      }, '-=0.15');
+
+      tl.to(bottomAccent, {
+        scaleX: 0,
+        duration: 0.3,
+        ease: 'power2.in'
+      }, '-=0.28');
+
+      // 5. Card slides out
+      tl.to(cardEl, {
+        x: -60,
+        opacity: 0,
+        scaleY: 0.95,
+        duration: 0.35,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      console.log('[OBS] Animating out');
+    }
+
+    // ========================================================================
+    // Click to Unpin
+    // ========================================================================
+    function unpinComment() {
+      if (currentPinned && ws && ws.readyState === WebSocket.OPEN) {
+        console.log('[OBS] Unpinning via click');
+        ws.send(JSON.stringify({ type: 'unpin' }));
+      }
+    }
+
+    // ========================================================================
+    // Handle Pin Updates
+    // ========================================================================
+    function handlePinUpdate(pinnedMessage) {
+      if (pinnedMessage && !currentPinned) {
+        // New pin - animate in
+        animateIn(pinnedMessage);
+      } else if (!pinnedMessage && currentPinned) {
+        // Unpin - animate out
+        animateOut();
+      } else if (pinnedMessage && currentPinned) {
+        // Different pin - animate out then in
+        if (pinnedMessage.id !== currentPinned.id) {
+          animateOut(() => {
+            setTimeout(() => animateIn(pinnedMessage), 150);
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[OBS] WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          switch (data.type) {
+            case 'init':
+              if (data.data.pinnedMessage) {
+                handlePinUpdate(data.data.pinnedMessage);
+              }
+              break;
+
+            case 'pin':
+              handlePinUpdate(data.data.message);
+              break;
+          }
+        } catch (e) {
+          console.error('[OBS] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[OBS] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[OBS] WebSocket error:', error);
+      };
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Debug: Test animation with URL param
+    if (params.get('test') === 'true') {
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_1',
+          author: 'Darren Fletcher',
+          message: 'This is absolutely incredible content! The production quality is next level.',
+          isSuperchat: false,
+          badges: ['member'],
+          authorPhoto: ''
+        });
+      }, 1000);
+
+      // Test superchat after 6 seconds
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_2',
+          author: 'BigSupporter',
+          message: 'Amazing stream! Here is my support for the channel - keep up the great work!',
+          isSuperchat: true,
+          amount: 50,
+          amountFormatted: '$50.00',
+          badges: [],
+          authorPhoto: ''
+        });
+      }, 7000);
+
+      // Test unpin after 13 seconds
+      setTimeout(() => {
+        handlePinUpdate(null);
+      }, 14000);
+    }
+  </script>
+</body>
+</html>
