@@ -174,7 +174,7 @@
     // Check URL params
     const urlParams = new URLSearchParams(window.location.search);
     const isOBSMode = urlParams.get('obs') === '1' || urlParams.get('output') === '1';
-    
+
     // State (global for cross-window access)
     window.slides = [];
     window.currentIndex = 0;
@@ -197,6 +197,105 @@
     let editingSlideId = null;
     let showSettings = false;
 
+    // ============ WEBSOCKET SYNC ============
+    let ws = null;
+    let wsReconnectAttempts = 0;
+    const maxWsReconnectAttempts = 10;
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      try {
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          console.log('[Slideshow WS] Connected');
+          wsReconnectAttempts = 0;
+          if (isOBSMode) {
+            // OBS mode: request current state from server
+            ws.send(JSON.stringify({ type: 'slideshow_get' }));
+          } else {
+            // Control panel: sync current state to server (after small delay to ensure state is loaded)
+            setTimeout(() => {
+              if (slides.length > 0) {
+                console.log('[Slideshow WS] Syncing', slides.length, 'slides to server');
+                broadcastToServer();
+              }
+            }, 500);
+          }
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleWsMessage(data);
+          } catch (e) {
+            console.error('[Slideshow WS] Parse error:', e);
+          }
+        };
+
+        ws.onclose = () => {
+          console.log('[Slideshow WS] Disconnected');
+          // Attempt reconnect
+          if (wsReconnectAttempts < maxWsReconnectAttempts) {
+            wsReconnectAttempts++;
+            setTimeout(connectWebSocket, 2000 * wsReconnectAttempts);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('[Slideshow WS] Error:', error);
+        };
+      } catch (e) {
+        console.error('[Slideshow WS] Failed to connect:', e);
+      }
+    }
+
+    function handleWsMessage(data) {
+      if (data.type === 'slideshow_init' || data.type === 'slideshow_update') {
+        const slideData = data.data || data;
+        const slideChanged = currentIndex !== slideData.currentIndex;
+
+        // Update state from server
+        if (slideData.slides) slides = slideData.slides;
+        if (slideData.currentIndex !== undefined) currentIndex = slideData.currentIndex;
+        if (slideData.isPlaying !== undefined) isPlaying = slideData.isPlaying;
+        if (slideData.globalSettings) globalSettings = slideData.globalSettings;
+
+        // Sync to window
+        window.slides = slides;
+        window.currentIndex = currentIndex;
+        window.isPlaying = isPlaying;
+        window.globalSettings = globalSettings;
+        window.stateVersion++;
+
+        console.log('[Slideshow WS] Received state update, slides:', slides.length, 'index:', currentIndex);
+
+        if (isOBSMode) {
+          renderOBS(slideChanged);
+        } else {
+          renderFull();
+        }
+      }
+    }
+
+    function wsSend(type, data = {}) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type, ...data }));
+      }
+    }
+
+    // Broadcast state to server (for sync with OBS)
+    function broadcastToServer() {
+      wsSend('slideshow_sync', {
+        slides: slides,
+        currentIndex: currentIndex,
+        isPlaying: isPlaying,
+        globalSettings: globalSettings
+      });
+    }
+
     // Keep window references in sync
     function syncWindowState() {
       window.slides = slides;
@@ -209,6 +308,8 @@
     function broadcast() {
       syncWindowState();
       pushToOBS();
+      // Also broadcast to server for WebSocket-connected OBS windows
+      broadcastToServer();
     }
     
     // Function called by parent window to update OBS
@@ -232,28 +333,74 @@
       return 'image';
     }
 
-    function handleFileUpload(e) {
-      Array.from(e.target.files).forEach(file => {
-        // Alternate Ken Burns: odd slides zoom in, even slides zoom out
+    // Upload file to server and return URL
+    async function uploadFileToServer(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.error('[Upload] Error:', error);
+        // Fallback to blob URL if upload fails
+        return {
+          url: URL.createObjectURL(file),
+          type: getFileType(file),
+          originalName: file.name,
+          fallback: true
+        };
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const files = Array.from(e.target.files);
+      e.target.value = '';
+
+      // Show loading state
+      const loadingCount = files.length;
+      console.log(`[Upload] Uploading ${loadingCount} files...`);
+
+      // Upload files in parallel
+      const uploadPromises = files.map(async (file) => {
+        const result = await uploadFileToServer(file);
         const slideIndex = slides.length;
         const alternatingKenBurns = (slideIndex % 2 === 0) ? 'zoomIn' : 'zoomOut';
 
-        slides.push({
+        const slide = {
           id: Date.now() + Math.random(),
-          url: URL.createObjectURL(file),
-          type: getFileType(file),
-          fileName: file.name,
-          name: file.name.replace(/\.[^/.]+$/, ""),
+          url: result.url,
+          type: result.type || getFileType(file),
+          fileName: result.originalName || file.name,
+          name: (result.originalName || file.name).replace(/\.[^/.]+$/, ""),
           notes: '',
           title: '',
           subtitle: '',
           quote: '',
           quoteAuthor: '',
           kenBurns: alternatingKenBurns,
-          kenBurnsDuration: globalSettings.defaultKenBurnsDuration
-        });
+          kenBurnsDuration: globalSettings.defaultKenBurnsDuration,
+          serverFilename: result.filename, // Track server filename for deletion
+          fitMode: 'contain', // contain, cover, or fill
+          zoom: 100 // zoom percentage (100 = normal)
+        };
+
+        slides.push(slide);
+        return slide;
       });
-      e.target.value = '';
+
+      await Promise.all(uploadPromises);
+
+      console.log(`[Upload] Complete. ${slides.length} total slides.`);
       syncWindowState();
       renderFull();
       broadcast();
@@ -416,6 +563,16 @@
     function deleteSlide(id) {
       const idx = slides.findIndex(s => s.id === id);
       if (idx !== -1) {
+        const slide = slides[idx];
+
+        // Delete file from server if it was uploaded there
+        if (slide.serverFilename) {
+          fetch(`/api/upload/${slide.serverFilename}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(result => console.log('[Delete] Server file deleted:', slide.serverFilename))
+            .catch(err => console.warn('[Delete] Failed to delete server file:', err));
+        }
+
         slides.splice(idx, 1); // Use splice to maintain array reference
         if (currentIndex >= slides.length) currentIndex = Math.max(0, slides.length - 1);
         editingSlideId = null;
@@ -492,6 +649,19 @@
       const kb = slide.kenBurns;
       const kbClass = kb === 'zoomIn' ? 'kb-zoom-in' : kb === 'zoomOut' ? 'kb-zoom-out' : kb === 'panLeft' ? 'kb-pan-left' : kb === 'panRight' ? 'kb-pan-right' : '';
 
+      // Fit mode classes
+      const fitMode = slide.fitMode || 'contain';
+      let fitClass = 'max-w-full max-h-full object-contain'; // default: contain
+      if (fitMode === 'cover') {
+        fitClass = 'w-full h-full object-cover';
+      } else if (fitMode === 'fill') {
+        fitClass = 'w-full h-full object-fill';
+      }
+
+      // Zoom transform
+      const zoom = slide.zoom || 100;
+      const zoomStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+
       return `
         <div class="absolute inset-0 scale-150">
           ${slide.type === 'video' ?
@@ -499,10 +669,10 @@
             `<img src="${slide.url}" class="w-full h-full object-cover blur-3xl opacity-50">`}
         </div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
-        <div class="slide-container absolute inset-0 flex items-center justify-center">
+        <div class="slide-container absolute inset-0 flex items-center justify-center overflow-hidden">
           ${slide.type === 'video' ?
-            `<video class="obs-main-video max-w-full max-h-full object-contain ${kbClass}" src="${slide.url}" style="--kb-duration:${slide.kenBurnsDuration}s" loop playsinline></video>` :
-            `<img src="${slide.url}" class="max-w-full max-h-full object-contain ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s">`}
+            `<video class="obs-main-video ${fitClass} ${kbClass}" src="${slide.url}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}" loop playsinline></video>` :
+            `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}">`}
         </div>
         <div class="obs-quote-container"></div>
         <div class="obs-title-container"></div>`;
@@ -795,10 +965,23 @@
             <p class="text-gray-500">Add slides to get started</p>
           </div>
         </div>`;
-      
+
       const kb = slide.kenBurns;
       const kbClass = kb === 'zoomIn' ? 'kb-zoom-in' : kb === 'zoomOut' ? 'kb-zoom-out' : kb === 'panLeft' ? 'kb-pan-left' : kb === 'panRight' ? 'kb-pan-right' : '';
-      
+
+      // Fit mode classes
+      const fitMode = slide.fitMode || 'contain';
+      let fitClass = 'max-w-full max-h-full object-contain'; // default: contain
+      if (fitMode === 'cover') {
+        fitClass = 'w-full h-full object-cover';
+      } else if (fitMode === 'fill') {
+        fitClass = 'w-full h-full object-fill';
+      }
+
+      // Zoom transform
+      const zoom = slide.zoom || 100;
+      const zoomStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+
       return `
         <div class="slide-container absolute inset-0">
           <div class="absolute inset-0 scale-150">
@@ -807,10 +990,10 @@
               `<img src="${slide.url}" class="w-full h-full object-cover blur-3xl opacity-50">`}
           </div>
           <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
+          <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
             ${slide.type === 'video' ?
-              `<video id="mainVideo" src="${slide.url}" class="max-w-full max-h-full object-contain ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s" loop playsinline></video>` :
-              `<img src="${slide.url}" class="max-w-full max-h-full object-contain ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s">`}
+              `<video id="mainVideo" src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}" loop playsinline></video>` :
+              `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}">`}
           </div>
           ${slide.quote ? `
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center max-w-3xl px-6 z-10">
@@ -924,9 +1107,33 @@
               <input type="range" id="ed-kenBurnsDuration" min="10" max="120" step="5" value="${slide.kenBurnsDuration}">
               <div class="flex justify-between text-xs text-gray-600 mt-1"><span>10s</span><span>60s</span><span>120s</span></div>
             </div>
-            
+
             <hr class="border-white/10">
-            
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Fit Mode</label>
+              <div class="grid grid-cols-3 gap-2" id="fitmode-buttons">
+                <button onclick="setFitMode('contain')" class="px-2 py-1.5 rounded text-xs font-medium transition-all ${(slide.fitMode || 'contain') === 'contain' ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'}">
+                  Contain
+                </button>
+                <button onclick="setFitMode('cover')" class="px-2 py-1.5 rounded text-xs font-medium transition-all ${slide.fitMode === 'cover' ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'}">
+                  Cover
+                </button>
+                <button onclick="setFitMode('fill')" class="px-2 py-1.5 rounded text-xs font-medium transition-all ${slide.fitMode === 'fill' ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'}">
+                  Fill
+                </button>
+              </div>
+              <p class="text-xs text-gray-600 mt-1.5">Contain = letterbox, Cover = crop to fill, Fill = stretch</p>
+            </div>
+
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Zoom: <span id="ed-zoom-label" class="text-white">${slide.zoom || 100}%</span></label>
+              <input type="range" id="ed-zoom" min="50" max="200" step="5" value="${slide.zoom || 100}">
+              <div class="flex justify-between text-xs text-gray-600 mt-1"><span>50%</span><span>100%</span><span>200%</span></div>
+            </div>
+
+            <hr class="border-white/10">
+
             <button onclick="deleteSlide(${slide.id})" class="w-full bg-red-600/10 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-white rounded-lg py-2.5 flex items-center justify-center gap-2 transition text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               Delete Slide
@@ -1061,6 +1268,36 @@
           pushToOBS();
         });
       }
+
+      // Zoom slider
+      const zoomSlider = document.getElementById('ed-zoom');
+      const zoomLabel = document.getElementById('ed-zoom-label');
+      if (zoomSlider) {
+        zoomSlider.addEventListener('input', (e) => {
+          slide.zoom = parseInt(e.target.value);
+          if (zoomLabel) zoomLabel.textContent = slide.zoom + '%';
+          updatePreviewOnly();
+          syncWindowState();
+          broadcast();
+        });
+      }
+    }
+
+    // Set fit mode for current slide
+    function setFitMode(mode) {
+      const slide = slides.find(s => s.id === editingSlideId);
+      if (slide) {
+        slide.fitMode = mode;
+        updatePreviewOnly();
+        syncWindowState();
+        broadcast();
+        // Re-render editor to update button states
+        const editorContainer = document.querySelector('.w-80.bg-neutral-900');
+        if (editorContainer) {
+          editorContainer.outerHTML = renderEditorPanel(slide);
+          attachEditorListeners(slide);
+        }
+      }
     }
 
     // Update only the preview box content (no re-render of inputs)
@@ -1082,11 +1319,14 @@
     }
 
     // Initialize
+    // Connect WebSocket for all modes (control panel and OBS)
+    connectWebSocket();
+
     if (isOBSMode) {
-      // OBS mode - render and sync via polling from parent window
+      // OBS mode - render and sync via WebSocket (primary) or polling from parent window (fallback)
       renderOBS();
 
-      // Sync state from opener window (parent control window)
+      // Sync state from opener window (parent control window) - fallback for popup windows
       function syncFromOpener() {
         try {
           if (window.opener && !window.opener.closed) {
@@ -1104,7 +1344,7 @@
           }
         } catch (err) {
           // This will happen on file:// URLs due to cross-origin restrictions
-          console.warn('OBS sync error (may be file:// protocol issue):', err.message);
+          // WebSocket will handle sync in this case
         }
         return -1;
       }
@@ -1113,7 +1353,7 @@
       let lastVersion = -1;
       let lastSlideIndex = -1;
 
-      // Sync video playback state with main window
+      // Sync video playback state with main window (only works for popup windows)
       function syncVideoPlayback() {
         try {
           const mainVideo = window.opener?.document?.getElementById('mainVideo');
@@ -1140,13 +1380,16 @@
             obsVideo.muted = false;
           }
         } catch (err) {
-          // Cross-origin or element not found
+          // Cross-origin or element not found - WebSocket handles sync
         }
       }
 
-      // Poll at 50ms (20fps) - fast enough for real-time feel, cheap since we just compare a number
+      // Poll for opener window sync (fallback - WebSocket is primary for OBS browser sources)
       setInterval(() => {
         try {
+          // Only use opener polling if opener exists (popup window mode)
+          if (!window.opener || window.opener.closed) return;
+
           const openerVersion = window.opener?.stateVersion ?? -1;
           const openerIndex = window.opener?.currentIndex ?? 0;
 

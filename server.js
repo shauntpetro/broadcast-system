@@ -7,13 +7,55 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
+const fs = require('fs');
 const fetch = require('node-fetch');
+const multer = require('multer');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 8888;
+
+// ============================================================================
+// File Upload Setup
+// ============================================================================
+
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  console.log('[Server] Created uploads directory');
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `slide-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images and videos
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and video files are allowed'), false);
+    }
+  }
+});
 
 // ============================================================================
 // State Management
@@ -28,7 +70,19 @@ const state = {
     { title: 'BREAKING', content: 'Welcome to the broadcast' }
   ],
   tickerSpeed: 100,
-  showTicker: true
+  showTicker: true,
+  // Slideshow state
+  slideshow: {
+    slides: [],
+    currentIndex: 0,
+    isPlaying: false,
+    globalSettings: {
+      transition: 'blur',
+      transitionDuration: 0.4,
+      defaultKenBurns: 'none',
+      defaultKenBurnsDuration: 30
+    }
+  }
 };
 
 // ============================================================================
@@ -519,6 +573,35 @@ wss.on('connection', (ws) => {
           });
           break;
 
+        // ============== SLIDESHOW MESSAGES ==============
+        case 'slideshow_sync':
+          // Full state sync from control panel
+          if (message.slides !== undefined) state.slideshow.slides = message.slides;
+          if (message.currentIndex !== undefined) state.slideshow.currentIndex = message.currentIndex;
+          if (message.isPlaying !== undefined) state.slideshow.isPlaying = message.isPlaying;
+          if (message.globalSettings) state.slideshow.globalSettings = message.globalSettings;
+          broadcast('slideshow_update', state.slideshow);
+          break;
+
+        case 'slideshow_navigate':
+          // Navigate to specific slide
+          state.slideshow.currentIndex = message.index;
+          broadcast('slideshow_update', state.slideshow);
+          break;
+
+        case 'slideshow_play':
+          state.slideshow.isPlaying = message.isPlaying;
+          broadcast('slideshow_update', state.slideshow);
+          break;
+
+        case 'slideshow_get':
+          // Request current slideshow state (for OBS windows)
+          ws.send(JSON.stringify({
+            type: 'slideshow_init',
+            data: state.slideshow
+          }));
+          break;
+
         default:
           console.log('[WebSocket] Unknown message type:', message.type);
       }
@@ -567,6 +650,89 @@ scraper.onError((error) => {
 // Serve static files
 app.use(express.static(path.join(__dirname)));
 
+// Serve uploads directory
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+// File upload endpoint for slideshow
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const fileUrl = `/uploads/${req.file.filename}`;
+  console.log(`[Upload] Saved: ${req.file.originalname} -> ${fileUrl}`);
+
+  res.json({
+    success: true,
+    url: fileUrl,
+    filename: req.file.filename,
+    originalName: req.file.originalname,
+    type: req.file.mimetype.startsWith('video/') ? 'video' : 'image',
+    size: req.file.size
+  });
+});
+
+// Multiple file upload
+app.post('/api/upload-multiple', upload.array('files', 50), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'No files uploaded' });
+  }
+
+  const results = req.files.map(file => ({
+    success: true,
+    url: `/uploads/${file.filename}`,
+    filename: file.filename,
+    originalName: file.originalname,
+    type: file.mimetype.startsWith('video/') ? 'video' : 'image',
+    size: file.size
+  }));
+
+  console.log(`[Upload] Saved ${results.length} files`);
+  res.json({ success: true, files: results });
+});
+
+// Delete uploaded file
+app.delete('/api/upload/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filepath = path.join(UPLOADS_DIR, filename);
+
+  // Security: ensure filename doesn't contain path traversal
+  if (filename.includes('..') || filename.includes('/')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+
+  if (fs.existsSync(filepath)) {
+    fs.unlinkSync(filepath);
+    console.log(`[Upload] Deleted: ${filename}`);
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
+
+// List uploaded files
+app.get('/api/uploads', (req, res) => {
+  try {
+    const files = fs.readdirSync(UPLOADS_DIR).map(filename => {
+      const filepath = path.join(UPLOADS_DIR, filename);
+      const stats = fs.statSync(filepath);
+      const ext = path.extname(filename).toLowerCase();
+      const videoExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.m4v'];
+
+      return {
+        filename,
+        url: `/uploads/${filename}`,
+        type: videoExts.includes(ext) ? 'video' : 'image',
+        size: stats.size,
+        created: stats.birthtime
+      };
+    });
+    res.json({ files });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to list files' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -587,7 +753,8 @@ app.get('/api/state', (req, res) => {
     videoId: state.videoId,
     tickerItems: state.tickerItems,
     tickerSpeed: state.tickerSpeed,
-    showTicker: state.showTicker
+    showTicker: state.showTicker,
+    slideshow: state.slideshow
   });
 });
 
