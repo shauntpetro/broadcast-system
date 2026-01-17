@@ -595,7 +595,7 @@ app.get('/api/state', (req, res) => {
 // Start Server
 // ============================================================================
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║           Broadcast System Server Started                   ║
