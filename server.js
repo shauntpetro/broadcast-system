@@ -567,11 +567,6 @@ scraper.onError((error) => {
 // Serve static files
 app.use(express.static(path.join(__dirname)));
 
-// Redirect root to control panel
-app.get('/', (req, res) => {
-  res.redirect('/youtube_chat.html');
-});
-
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
