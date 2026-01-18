@@ -71,6 +71,13 @@ const state = {
   ],
   tickerSpeed: 100,
   showTicker: true,
+  tickerStyle: 'tape', // 'tape' (ripped paper) or 'sports'
+  // Sports ticker specific settings
+  sportsTicker: {
+    brand: 'SEMEEX',
+    category: 'FOOTBALL',
+    logoUrl: '/uploads/SemeexLogo.png'
+  },
   // Slideshow state
   slideshow: {
     slides: [],
@@ -481,7 +488,9 @@ wss.on('connection', (ws) => {
       videoId: state.videoId,
       tickerItems: state.tickerItems,
       tickerSpeed: state.tickerSpeed,
-      showTicker: state.showTicker
+      showTicker: state.showTicker,
+      tickerStyle: state.tickerStyle,
+      sportsTicker: state.sportsTicker
     }
   }));
 
@@ -566,10 +575,18 @@ wss.on('connection', (ws) => {
           if (message.items) state.tickerItems = message.items;
           if (message.speed !== undefined) state.tickerSpeed = message.speed;
           if (message.show !== undefined) state.showTicker = message.show;
+          if (message.style) state.tickerStyle = message.style;
+          if (message.sportsTicker) {
+            if (message.sportsTicker.brand !== undefined) state.sportsTicker.brand = message.sportsTicker.brand;
+            if (message.sportsTicker.category !== undefined) state.sportsTicker.category = message.sportsTicker.category;
+            if (message.sportsTicker.logoUrl !== undefined) state.sportsTicker.logoUrl = message.sportsTicker.logoUrl;
+          }
           broadcast('ticker_update', {
             tickerItems: state.tickerItems,
             tickerSpeed: state.tickerSpeed,
-            showTicker: state.showTicker
+            showTicker: state.showTicker,
+            tickerStyle: state.tickerStyle,
+            sportsTicker: state.sportsTicker
           });
           break;
 
@@ -599,6 +616,28 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({
             type: 'slideshow_init',
             data: state.slideshow
+          }));
+          break;
+
+        // ============== SPORTS TICKER MESSAGES ==============
+        case 'sports_ticker_sync':
+          // Full state sync from control panel
+          if (message.brand !== undefined) state.sportsTicker.brand = message.brand;
+          if (message.category !== undefined) state.sportsTicker.category = message.category;
+          if (message.topic !== undefined) state.sportsTicker.topic = message.topic;
+          if (message.description !== undefined) state.sportsTicker.description = message.description;
+          if (message.logoUrl !== undefined) state.sportsTicker.logoUrl = message.logoUrl;
+          if (message.show !== undefined) state.sportsTicker.show = message.show;
+          if (message.scrollEnabled !== undefined) state.sportsTicker.scrollEnabled = message.scrollEnabled;
+          if (message.scrollSpeed !== undefined) state.sportsTicker.scrollSpeed = message.scrollSpeed;
+          broadcast('sports_ticker_update', state.sportsTicker);
+          break;
+
+        case 'sports_ticker_get':
+          // Request current sports ticker state (for OBS windows)
+          ws.send(JSON.stringify({
+            type: 'sports_ticker_init',
+            data: state.sportsTicker
           }));
           break;
 
@@ -754,6 +793,8 @@ app.get('/api/state', (req, res) => {
     tickerItems: state.tickerItems,
     tickerSpeed: state.tickerSpeed,
     showTicker: state.showTicker,
+    tickerStyle: state.tickerStyle,
+    sportsTicker: state.sportsTicker,
     slideshow: state.slideshow
   });
 });
@@ -773,6 +814,7 @@ server.listen(PORT, '0.0.0.0', () => {
 ║  Pages:                                                     ║
 ║  - Control Panel: http://localhost:${PORT}/youtube_chat.html  ║
 ║  - Ticker Widget: http://localhost:${PORT}/ticker.html        ║
+║  - Sports Ticker: http://localhost:${PORT}/ticker_sports.html ║
 ║  - Slideshow:     http://localhost:${PORT}/slideshow_4.html   ║
 ╠════════════════════════════════════════════════════════════╣
 ║  API:                                                       ║

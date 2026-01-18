@@ -187,6 +187,40 @@
           </button>
         </div>
       </div>
+
+      <!-- Style Selection -->
+      <div class="flex gap-3 flex-wrap items-center mb-4 pb-4 border-b border-gray-800">
+        <label class="text-sm text-gray-400">Style:</label>
+        <select id="tickerStyle" class="bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-red-500">
+          <option value="tape">Ripped Paper / Tape</option>
+          <option value="sports">Sports Broadcast</option>
+        </select>
+        <label class="flex items-center gap-2 ml-4 cursor-pointer">
+          <input type="checkbox" id="showTicker" checked class="w-4 h-4 rounded">
+          <span class="text-sm">Show Ticker</span>
+        </label>
+      </div>
+
+      <!-- Sports Style Settings (hidden by default) -->
+      <div id="sportsTickerSettings" class="mb-4 pb-4 border-b border-gray-800 hidden">
+        <h4 class="text-sm font-medium text-gray-300 mb-3">Sports Ticker Branding</h4>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Brand Name</label>
+            <input type="text" id="sportsBrand" value="SEMEEX" placeholder="SEMEEX" class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Category</label>
+            <input type="text" id="sportsCategory" value="FOOTBALL" placeholder="FOOTBALL" class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Logo URL (optional)</label>
+            <input type="text" id="sportsLogoUrl" value="" placeholder="https://..." class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+          </div>
+        </div>
+        <p class="text-xs text-gray-600 mt-2">For sports style, items will show as: [Brand] [Category] <span class="text-yellow-500 font-bold">TITLE</span> | Content</p>
+      </div>
+
       <div class="flex gap-3 flex-wrap items-center mb-4">
         <label class="text-sm text-gray-400">Speed:</label>
         <input
@@ -198,10 +232,6 @@
           class="w-32"
         >
         <span id="tickerSpeedValue" class="text-sm">100px/s</span>
-        <label class="flex items-center gap-2 ml-4 cursor-pointer">
-          <input type="checkbox" id="showTicker" checked class="w-4 h-4 rounded">
-          <span class="text-sm">Show Ticker</span>
-        </label>
       </div>
 
       <!-- Ticker Items Management -->
@@ -274,6 +304,8 @@
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
     let tickerItems = [];
+    let tickerStyle = 'tape';
+    let sportsTicker = { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '' };
 
     // ========================================================================
     // WebSocket Connection
@@ -325,8 +357,11 @@
           isConnected = data.data.isConnected;
           videoId = data.data.videoId;
           tickerItems = data.data.tickerItems || [];
+          tickerStyle = data.data.tickerStyle || 'tape';
+          sportsTicker = data.data.sportsTicker || { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '' };
           updateUI();
           renderTickerItems();
+          updateTickerStyleUI();
           break;
 
         case 'status':
@@ -366,6 +401,14 @@
           if (data.data.tickerItems) {
             tickerItems = data.data.tickerItems;
             renderTickerItems();
+          }
+          if (data.data.tickerStyle) {
+            tickerStyle = data.data.tickerStyle;
+            updateTickerStyleUI();
+          }
+          if (data.data.sportsTicker) {
+            sportsTicker = data.data.sportsTicker;
+            updateTickerStyleUI();
           }
           break;
 
@@ -735,12 +778,24 @@
         if (segment.includes('::')) {
           const parts = segment.split('::').map(p => p.trim());
           if (parts.length >= 2) {
-            // First part is title (extract text, remove emojis for clean title)
-            let title = parts[0].replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+            // First part is title - remove ALL emojis and variation selectors
+            let title = parts[0]
+              .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')  // Most emojis
+              .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc symbols
+              .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
+              .replace(/[\u{FE00}-\u{FE0F}]/gu, '')    // Variation selectors
+              .replace(/[\u{1F000}-\u{1F02F}]/gu, '')  // Mahjong
+              .replace(/[\u{1F0A0}-\u{1F0FF}]/gu, '')  // Playing cards
+              .replace(/[\u{1F100}-\u{1F1FF}]/gu, '')  // Enclosed alphanumerics
+              .replace(/[\u{1F200}-\u{1F2FF}]/gu, '')  // Enclosed ideographic
+              .replace(/[\u{E0000}-\u{E007F}]/gu, '')  // Tags
+              .trim();
+
             // If title is empty after removing emojis, use a default
             if (!title) title = 'NEWS';
-            // Keep title short - take first word or two
-            title = title.split(' ').slice(0, 2).join(' ').toUpperCase();
+
+            // Keep full title text (uppercase)
+            title = title.toUpperCase();
 
             // Rest is content (keep emojis)
             const content = parts.slice(1).join('::').trim();
@@ -823,6 +878,64 @@
 
     document.getElementById('manualMessage').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') addManualMessage();
+    });
+
+    // ========================================================================
+    // Ticker Style Functions
+    // ========================================================================
+    function updateTickerStyleUI() {
+      const styleSelect = document.getElementById('tickerStyle');
+      const sportsSettings = document.getElementById('sportsTickerSettings');
+      const brandInput = document.getElementById('sportsBrand');
+      const categoryInput = document.getElementById('sportsCategory');
+      const logoInput = document.getElementById('sportsLogoUrl');
+
+      if (styleSelect) styleSelect.value = tickerStyle;
+
+      // Show/hide sports settings
+      if (sportsSettings) {
+        if (tickerStyle === 'sports') {
+          sportsSettings.classList.remove('hidden');
+        } else {
+          sportsSettings.classList.add('hidden');
+        }
+      }
+
+      // Update sports ticker inputs
+      if (brandInput) brandInput.value = sportsTicker.brand || '';
+      if (categoryInput) categoryInput.value = sportsTicker.category || '';
+      if (logoInput) logoInput.value = sportsTicker.logoUrl || '';
+    }
+
+    function sendTickerUpdate() {
+      send('update_ticker', {
+        items: tickerItems,
+        style: tickerStyle,
+        sportsTicker: sportsTicker
+      });
+    }
+
+    // Ticker style dropdown
+    document.getElementById('tickerStyle').addEventListener('change', (e) => {
+      tickerStyle = e.target.value;
+      updateTickerStyleUI();
+      sendTickerUpdate();
+    });
+
+    // Sports ticker inputs
+    document.getElementById('sportsBrand').addEventListener('input', (e) => {
+      sportsTicker.brand = e.target.value;
+      sendTickerUpdate();
+    });
+
+    document.getElementById('sportsCategory').addEventListener('input', (e) => {
+      sportsTicker.category = e.target.value;
+      sendTickerUpdate();
+    });
+
+    document.getElementById('sportsLogoUrl').addEventListener('input', (e) => {
+      sportsTicker.logoUrl = e.target.value;
+      sendTickerUpdate();
     });
   </script>
 </body>

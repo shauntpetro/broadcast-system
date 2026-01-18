@@ -6,6 +6,9 @@
   <title>Broadcast Ticker</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -472,6 +475,160 @@
     .tier-orange { --accent-color: #f57c00; }
     .tier-magenta { --accent-color: #e91e63; }
     .tier-red { --accent-color: #c41e3a; }
+
+    /* ========================================
+       Sports Ticker Style - Semeex Football
+    ======================================== */
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Condensed:wght@700&family=Roboto:wght@400;500&display=swap');
+
+    .sports-ticker-wrapper {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to top, #000000 0%, #111111 70%, #1a1a1a 100%);
+      display: none;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.7);
+    }
+
+    .sports-ticker-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(to right,
+        #666 0%,
+        #fff 15%,
+        #999 30%,
+        #fff 50%,
+        #999 70%,
+        #fff 85%,
+        #666 100%
+      );
+      z-index: 100;
+    }
+
+    .sports-ticker-wrapper.active {
+      display: flex;
+      align-items: center;
+    }
+
+    .sports-ticker-bar {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Logo Area */
+    .sports-logo-wrapper {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding-left: 20px;
+      padding-right: 30px;
+      flex-shrink: 0;
+    }
+
+    .sports-logo {
+      height: 50px;
+      width: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.7));
+    }
+
+    /* Content Area - single row with pill and description */
+    .sports-content-area {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Topic Pill - Animated - centered */
+    .sports-topic-pill {
+      display: inline-flex;
+      height: 45px;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+      z-index: 20;
+      font-family: 'Roboto Condensed', sans-serif;
+      text-transform: uppercase;
+      opacity: 0;
+      flex-shrink: 0;
+      position: relative;
+      filter: blur(0px);
+      transform-origin: left center;
+    }
+
+    .sports-topic-text {
+      background: linear-gradient(to bottom, #ffea00 0%, #e6c700 100%);
+      color: #000;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    /* Description Scroll Area - scrolls BEHIND the pill */
+    .sports-ticker-display {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      z-index: 10; /* Behind the pill (z-index 20) */
+    }
+
+    .sports-description-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .sports-content {
+      position: absolute;
+      white-space: nowrap;
+      color: white;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      will-change: transform;
+      left: 0;
+      /* Position controlled by GSAP transform */
+    }
+
+    /* Hide unused elements */
+    .sports-brand-pill,
+    .sports-brand-badge,
+    .sports-category-badge,
+    .sports-topic,
+    .sports-separator,
+    .sports-scrolling-content,
+    .sports-ticker-underline {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -504,6 +661,31 @@
     </div>
   </div>
 
+  <!-- Sports Style Ticker -->
+  <div id="sportsTickerWrapper" class="sports-ticker-wrapper">
+    <div class="sports-ticker-bar">
+      <!-- Logo Area -->
+      <div class="sports-logo-wrapper">
+        <img id="sportsLogo" class="sports-logo" src="" alt="">
+      </div>
+
+      <!-- Content Area - Topic Pill above, Description below -->
+      <div class="sports-content-area">
+        <!-- Topic Pill (animated) -->
+        <div class="sports-topic-pill" id="sportsTopicPill">
+          <div class="sports-topic-text" id="sportsTopic">TOPIC</div>
+        </div>
+
+        <!-- Description Scroll Area (underneath pill) -->
+        <div class="sports-ticker-display" id="sportsTickerDisplay">
+          <div class="sports-description-track">
+            <span id="sportsContent" class="sports-content">Description of the news item goes here</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ========================================================================
     // Configuration from URL parameters
@@ -522,13 +704,25 @@
     let pinnedMessage = null;
     let tickerSpeed = config.speed;
     let showTicker = true;
+    let tickerStyle = 'tape';
+    let sportsTicker = { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '' };
     let currentIndex = 0;
     let isTransitioning = false;
     let scrollAnimation = null;
 
-    // DOM Elements
+    // DOM Elements - Tape Style
     const wrapper = document.getElementById('tickerWrapper');
     const tapeLeft = document.getElementById('tapeLeft');
+
+    // DOM Elements - Sports Style
+    const sportsWrapper = document.getElementById('sportsTickerWrapper');
+    const sportsLogo = document.getElementById('sportsLogo');
+    const sportsTopicPill = document.getElementById('sportsTopicPill');
+    const sportsTopicEl = document.getElementById('sportsTopic');
+    const sportsContentEl = document.getElementById('sportsContent');
+    const sportsTickerDisplay = document.getElementById('sportsTickerDisplay');
+    let sportsCurrentIndex = 0;
+    let sportsAnimationTimeline = null;
     const tapeRight = document.getElementById('tapeRight');
     const tapeBottomLeft = document.getElementById('tapeBottomLeft');
     const tapeBottomRight = document.getElementById('tapeBottomRight');
@@ -611,7 +805,10 @@
           pinnedMessage = data.data.pinnedMessage;
           tickerSpeed = data.data.tickerSpeed || config.speed;
           showTicker = data.data.showTicker !== false;
-          console.log('[Ticker] Init with', tickerItems.length, 'items:', tickerItems);
+          if (data.data.tickerStyle) tickerStyle = data.data.tickerStyle;
+          if (data.data.sportsTicker) sportsTicker = data.data.sportsTicker;
+          console.log('[Ticker] Init with', tickerItems.length, 'items, style:', tickerStyle);
+          updateTickerStyle();
           initTicker();
           break;
 
@@ -623,11 +820,13 @@
           break;
 
         case 'ticker_update':
-          console.log('[Ticker] Update with', data.data.tickerItems?.length, 'items');
+          console.log('[Ticker] Update with', data.data.tickerItems?.length, 'items, style:', data.data.tickerStyle);
           if (data.data.tickerItems) tickerItems = data.data.tickerItems;
           if (data.data.tickerSpeed !== undefined) tickerSpeed = data.data.tickerSpeed;
           if (data.data.showTicker !== undefined) showTicker = data.data.showTicker;
-          wrapper.style.display = showTicker ? 'block' : 'none';
+          if (data.data.tickerStyle) tickerStyle = data.data.tickerStyle;
+          if (data.data.sportsTicker) sportsTicker = data.data.sportsTicker;
+          updateTickerStyle();
           // Re-initialize if items changed
           if (data.data.tickerItems) {
             initTicker();
@@ -644,8 +843,19 @@
     // Ticker Initialization
     // ========================================================================
     function initTicker() {
-      console.log('[Ticker] Initializing mode:', config.mode, 'items:', tickerItems.length, 'showTicker:', showTicker);
+      console.log('[Ticker] Initializing mode:', config.mode, 'items:', tickerItems.length, 'showTicker:', showTicker, 'style:', tickerStyle);
+
+      // If sports style, handle differently
+      if (tickerStyle === 'sports') {
+        wrapper.style.display = 'none';
+        sportsWrapper.classList.add('active');
+        updateSportsContent();
+        return;
+      }
+
+      // Tape style
       wrapper.style.display = showTicker ? 'block' : 'none';
+      sportsWrapper.classList.remove('active');
 
       switch (config.mode) {
         case 'ticker':
@@ -660,6 +870,137 @@
         default:
           initParallaxTicker();
       }
+    }
+
+    // ========================================================================
+    // Sports Ticker Content Update
+    // ========================================================================
+    function updateSportsContent() {
+      // Handle logo
+      if (sportsTicker.logoUrl) {
+        sportsLogo.src = sportsTicker.logoUrl;
+        sportsLogo.style.display = 'block';
+        sportsLogo.parentElement.style.display = 'flex';
+      } else {
+        sportsLogo.style.display = 'none';
+        sportsLogo.parentElement.style.display = 'none';
+      }
+
+      // Start the sports ticker animation loop
+      if (tickerItems.length > 0) {
+        sportsCurrentIndex = 0;
+        playSportsTickerItem();
+      } else {
+        sportsTopicEl.textContent = 'NEWS';
+        sportsContentEl.textContent = 'No ticker content available';
+      }
+    }
+
+    // Play a single sports ticker item with parallax animation
+    function playSportsTickerItem() {
+      if (tickerItems.length === 0) return;
+
+      // Kill any existing animation
+      if (sportsAnimationTimeline) {
+        sportsAnimationTimeline.kill();
+      }
+
+      const item = tickerItems[sportsCurrentIndex];
+
+      // Update content
+      sportsTopicEl.textContent = item.title || 'NEWS';
+      sportsContentEl.textContent = item.content || 'Description of the news item goes here';
+
+      // Force reflow to get accurate dimensions
+      void sportsContentEl.offsetWidth;
+
+      // Get dimensions for animation calculations
+      const contentArea = document.querySelector('.sports-content-area');
+      const areaWidth = contentArea ? contentArea.offsetWidth : 1600;
+      const contentWidth = sportsContentEl.offsetWidth;
+      const pillWidth = sportsTopicPill.offsetWidth || 200;
+      const scrollSpeed = tickerSpeed || 200; // Use tickerSpeed from settings
+
+      // Total distance: from off-screen right to off-screen left
+      const totalDistance = areaWidth + contentWidth;
+      const scrollDuration = totalDistance / scrollSpeed;
+
+      // Calculate when text has FULLY passed behind the pill
+      const timeForTextToPassPill = (areaWidth + contentWidth + 50) / scrollSpeed;
+
+      console.log('[Sports] Scroll duration:', scrollDuration.toFixed(2), 'Speed:', scrollSpeed);
+
+      // Create GSAP timeline for the animation sequence
+      sportsAnimationTimeline = gsap.timeline({
+        onComplete: () => {
+          // Move to next item when complete
+          sportsCurrentIndex = (sportsCurrentIndex + 1) % tickerItems.length;
+          // Small delay before next item
+          setTimeout(playSportsTickerItem, 100);
+        }
+      });
+
+      // Reset initial states
+      gsap.set(sportsTopicPill, {
+        opacity: 0,
+        x: -80,
+        scale: 0.8,
+        filter: 'blur(8px)',
+        boxShadow: '0 3px 12px rgba(0,0,0,0.5)'
+      });
+      gsap.set(sportsContentEl, {
+        x: areaWidth,
+        opacity: 0
+      });
+
+      // Phase 1: Topic pill BURSTS in with dramatic entrance
+      sportsAnimationTimeline.to(sportsTopicPill, {
+        opacity: 1,
+        x: 0,
+        scale: 1,
+        filter: 'blur(0px)',
+        boxShadow: '0 4px 20px rgba(255,234,0,0.4), 0 3px 12px rgba(0,0,0,0.5)',
+        duration: 0.6,
+        ease: 'back.out(1.4)'
+      });
+
+      // Phase 1b: Quick highlight flash on pill
+      sportsAnimationTimeline.to(sportsTopicPill, {
+        boxShadow: '0 3px 12px rgba(0,0,0,0.5)',
+        duration: 0.3,
+        ease: 'power1.out'
+      });
+
+      // Phase 2: Description fades in and starts scrolling
+      sportsAnimationTimeline.to(sportsContentEl, {
+        opacity: 1,
+        duration: 0.3,
+        ease: 'power2.out'
+      }, '-=0.4');
+
+      // Phase 3: Description scrolls across
+      sportsAnimationTimeline.to(sportsContentEl, {
+        x: -contentWidth - 100,
+        duration: scrollDuration,
+        ease: 'none'
+      }, '-=0.1');
+
+      // Phase 4: Topic pill exits with blur and scale
+      sportsAnimationTimeline.to(sportsTopicPill, {
+        opacity: 0,
+        x: -60,
+        scale: 0.85,
+        filter: 'blur(6px)',
+        duration: 0.5,
+        ease: 'power3.in'
+      }, '>-0.4');
+
+      // Phase 5: Description fades out at the end
+      sportsAnimationTimeline.to(sportsContentEl, {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      }, '>-0.3');
     }
 
     // ========================================================================
@@ -937,6 +1278,24 @@
       const head = document.getElementById('scannerHead');
       if (fill) fill.style.width = `${progress}%`;
       if (head) head.style.left = `${progress}%`;
+    }
+
+    // ========================================================================
+    // Style Switching
+    // ========================================================================
+    function updateTickerStyle() {
+      console.log('[Ticker] Updating style to:', tickerStyle);
+
+      if (tickerStyle === 'sports') {
+        // Hide tape style, show sports style
+        wrapper.style.display = 'none';
+        sportsWrapper.classList.add('active');
+        updateSportsContent();
+      } else {
+        // Show tape style, hide sports style
+        wrapper.style.display = showTicker ? 'block' : 'none';
+        sportsWrapper.classList.remove('active');
+      }
     }
 
     // ========================================================================
