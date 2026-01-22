@@ -3,118 +3,234 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Broadcast System</title>
+  <title>SEMEEX Broadcast System</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      color-scheme: dark;
+    }
     * { font-family: 'Inter', sans-serif; }
-    body { background: #0f0f0f; color: #fff; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    body { background: var(--bg-primary); color: var(--text-primary); }
+    .card { transition: transform var(--transition-normal), box-shadow var(--transition-normal); }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); }
+    .card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: var(--text-sm);
+    }
+    .step-line {
+      width: 2px;
+      height: 24px;
+      background: var(--border-default);
+      margin-left: 15px;
+    }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-8">
-  <div class="max-w-4xl w-full">
+<body class="min-h-screen p-4 md:p-8">
+  <div class="max-w-5xl mx-auto">
     <!-- Header -->
-    <div class="text-center mb-12">
+    <div class="text-center mb-8">
       <div class="flex items-center justify-center gap-3 mb-4">
-        <svg class="w-12 h-12 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+        <svg class="w-12 h-12" viewBox="0 0 24 24" fill="var(--brand-primary)" aria-hidden="true">
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
         </svg>
-        <h1 class="text-4xl font-bold">Broadcast System</h1>
+        <h1 class="text-3xl md:text-4xl font-bold" style="font-family: 'Oswald', sans-serif;">SEMEEX Broadcast</h1>
       </div>
       <p class="text-gray-400 text-lg">YouTube Chat Scraper & Live Broadcast Tools</p>
+    </div>
+
+    <!-- Quick Start Guide -->
+    <div class="bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--bg-tertiary)] rounded-2xl p-6 mb-8 border border-[var(--border-default)]">
+      <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-[var(--brand-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        Quick Start
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Step 1 -->
+        <div class="flex flex-col items-center text-center p-3">
+          <div class="step-number bg-[var(--brand-primary)] text-white mb-2">1</div>
+          <h3 class="font-medium text-sm mb-1">Add Slides</h3>
+          <p class="text-xs text-gray-400">Upload images/videos to the Slideshow</p>
+        </div>
+        <!-- Step 2 -->
+        <div class="flex flex-col items-center text-center p-3">
+          <div class="step-number bg-[var(--brand-primary)] text-white mb-2">2</div>
+          <h3 class="font-medium text-sm mb-1">Connect YouTube</h3>
+          <p class="text-xs text-gray-400">Paste live stream URL in Control Panel</p>
+        </div>
+        <!-- Step 3 -->
+        <div class="flex flex-col items-center text-center p-3">
+          <div class="step-number bg-[var(--brand-primary)] text-white mb-2">3</div>
+          <h3 class="font-medium text-sm mb-1">Add OBS Sources</h3>
+          <p class="text-xs text-gray-400">Add browser sources for displays</p>
+        </div>
+        <!-- Step 4 -->
+        <div class="flex flex-col items-center text-center p-3">
+          <div class="step-number bg-[var(--brand-primary)] text-white mb-2">4</div>
+          <h3 class="font-medium text-sm mb-1">Go Live!</h3>
+          <p class="text-xs text-gray-400">Pin messages & control your broadcast</p>
+        </div>
+      </div>
     </div>
 
     <!-- Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Control Panel -->
-      <a href="/youtube_chat.html" class="card block bg-[#1a1a1a] rounded-xl p-6 border-l-4 border-red-600 transition-all duration-200">
+      <a href="/youtube_chat.html" class="card block bg-[var(--bg-secondary)] rounded-xl p-6 border-l-4 border-[var(--brand-primary)]">
         <div class="flex items-start gap-4">
-          <div class="p-3 bg-red-600/20 rounded-lg">
-            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-3 rounded-lg" style="background: rgba(196, 30, 58, 0.2);">
+            <svg class="w-8 h-8" style="color: var(--brand-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
           <div>
             <h2 class="text-xl font-semibold mb-2">Control Panel</h2>
             <p class="text-gray-400 text-sm">Manage chat queue, pin messages, configure ticker items, and connect to YouTube live streams.</p>
+            <div class="mt-3 flex items-center gap-2 text-xs">
+              <span class="px-2 py-1 rounded bg-[var(--brand-primary)]/20 text-[var(--brand-primary-light)]">Chat</span>
+              <span class="px-2 py-1 rounded bg-[var(--brand-primary)]/20 text-[var(--brand-primary-light)]">Ticker</span>
+              <span class="px-2 py-1 rounded bg-[var(--brand-primary)]/20 text-[var(--brand-primary-light)]">Settings</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Slideshow -->
+      <a href="/slideshow_4.html" class="card block bg-[var(--bg-secondary)] rounded-xl p-6 border-l-4 border-green-600">
+        <div class="flex items-start gap-4">
+          <div class="p-3 bg-green-600/20 rounded-lg">
+            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Slideshow Editor</h2>
+            <p class="text-gray-400 text-sm">Image & video slideshow with Ken Burns effects, multiple transitions, and synchronized playback.</p>
+            <div class="mt-3 flex items-center gap-2 text-xs">
+              <span class="px-2 py-1 rounded bg-green-600/20 text-green-400 font-mono">1920 x 1080</span>
+              <span class="px-2 py-1 rounded bg-green-600/20 text-green-400">Auto-optimize</span>
+            </div>
           </div>
         </div>
       </a>
 
       <!-- Chat OBS Output -->
-      <div class="bg-[#1a1a1a] rounded-xl p-6 border-l-4 border-purple-600">
+      <div class="card bg-[var(--bg-secondary)] rounded-xl p-6 border-l-4 border-purple-600">
         <div class="flex items-start gap-4">
           <div class="p-3 bg-purple-600/20 rounded-lg">
-            <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
           </div>
           <div class="flex-1">
             <h2 class="text-xl font-semibold mb-2">Chat Display (OBS)</h2>
-            <p class="text-gray-400 text-sm mb-3">Animated pinned comment display with ripped paper aesthetic. Add as browser source in OBS.</p>
-            <div class="flex flex-wrap gap-2 mb-3">
-              <span class="px-2 py-1 bg-purple-600/20 text-purple-400 text-xs rounded font-mono">600 x 300</span>
-              <span class="text-gray-600 text-xs">or</span>
+            <p class="text-gray-400 text-sm mb-3">Animated pinned comment display. Add as browser source.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
               <span class="px-2 py-1 bg-purple-600/20 text-purple-400 text-xs rounded font-mono">1920 x 1080</span>
             </div>
-            <p class="text-gray-500 text-xs mb-2">Position:</p>
-            <div class="grid grid-cols-3 gap-1 max-w-[200px]">
-              <a href="/youtube_chat_obs.html?position=top-left" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">TL</a>
-              <a href="/youtube_chat_obs.html?position=top-center" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">TC</a>
-              <a href="/youtube_chat_obs.html?position=top-right" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">TR</a>
-              <a href="/youtube_chat_obs.html?position=center-left" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">CL</a>
-              <a href="/youtube_chat_obs.html?position=center" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">C</a>
-              <a href="/youtube_chat_obs.html?position=center-right" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">CR</a>
-              <a href="/youtube_chat_obs.html?position=bottom-left" class="px-2 py-1 bg-purple-600/40 text-purple-300 text-xs rounded text-center transition">BL</a>
-              <a href="/youtube_chat_obs.html?position=bottom-center" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">BC</a>
-              <a href="/youtube_chat_obs.html?position=bottom-right" class="px-2 py-1 bg-gray-800 hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition">BR</a>
+            <p class="text-gray-500 text-xs mb-2">Select position:</p>
+            <div class="grid grid-cols-3 gap-1.5 max-w-[180px]">
+              <a href="/youtube_chat_obs.html?position=top-left" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Top Left">TL</a>
+              <a href="/youtube_chat_obs.html?position=top-center" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Top Center">TC</a>
+              <a href="/youtube_chat_obs.html?position=top-right" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Top Right">TR</a>
+              <a href="/youtube_chat_obs.html?position=center-left" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Center Left">CL</a>
+              <a href="/youtube_chat_obs.html?position=center" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Center">C</a>
+              <a href="/youtube_chat_obs.html?position=center-right" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Center Right">CR</a>
+              <a href="/youtube_chat_obs.html?position=bottom-left" class="px-2 py-1.5 bg-purple-600/40 text-purple-300 text-xs rounded text-center transition-all font-medium" title="Bottom Left (Default)">BL</a>
+              <a href="/youtube_chat_obs.html?position=bottom-center" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Bottom Center">BC</a>
+              <a href="/youtube_chat_obs.html?position=bottom-right" class="px-2 py-1.5 bg-[var(--bg-tertiary)] hover:bg-purple-600/30 text-gray-400 hover:text-purple-300 text-xs rounded text-center transition-all" title="Bottom Right">BR</a>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Ticker -->
-      <a href="/ticker.html?mode=parallax" class="card block bg-[#1a1a1a] rounded-xl p-6 border-l-4 border-blue-600 transition-all duration-200">
+      <a href="/ticker.html?mode=parallax" class="card block bg-[var(--bg-secondary)] rounded-xl p-6 border-l-4 border-blue-600">
         <div class="flex items-start gap-4">
           <div class="p-3 bg-blue-600/20 rounded-lg">
-            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
           </div>
           <div>
             <h2 class="text-xl font-semibold mb-2">News Ticker (OBS)</h2>
             <p class="text-gray-400 text-sm">Parallax scrolling ticker with GSAP animations, scanner line effect, and breaking news styling.</p>
-            <span class="inline-block mt-2 px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded font-mono">1920 x 100</span>
+            <div class="mt-3 flex items-center gap-2 text-xs">
+              <span class="px-2 py-1 bg-blue-600/20 text-blue-400 rounded font-mono">1920 x 100</span>
+              <span class="px-2 py-1 bg-blue-600/20 text-blue-400 rounded">GSAP Animations</span>
+            </div>
           </div>
         </div>
       </a>
 
-      <!-- Slideshow -->
-      <a href="/slideshow_4.html" class="card block bg-[#1a1a1a] rounded-xl p-6 border-l-4 border-green-600 transition-all duration-200">
-        <div class="flex items-start gap-4">
-          <div class="p-3 bg-green-600/20 rounded-lg">
-            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold mb-2">Slideshow</h2>
-            <p class="text-gray-400 text-sm">Image slideshow display for broadcast backgrounds and visual content.</p>
-            <span class="inline-block mt-2 px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded font-mono">1920 x 1080</span>
-          </div>
+    </div>
+
+    <!-- Keyboard Shortcuts -->
+    <div class="mt-8 p-4 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-default)]">
+      <h3 class="text-sm font-medium mb-3 flex items-center gap-2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        Keyboard Shortcuts (Slideshow)
+      </h3>
+      <div class="flex flex-wrap gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <kbd class="px-2 py-1 bg-[var(--bg-tertiary)] rounded border border-[var(--border-default)] font-mono">Space</kbd>
+          <span class="text-gray-400">Play/Pause</span>
         </div>
-      </a>
+        <div class="flex items-center gap-2">
+          <kbd class="px-2 py-1 bg-[var(--bg-tertiary)] rounded border border-[var(--border-default)] font-mono">&larr; &rarr;</kbd>
+          <span class="text-gray-400">Navigate</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <kbd class="px-2 py-1 bg-[var(--bg-tertiary)] rounded border border-[var(--border-default)] font-mono">F</kbd>
+          <span class="text-gray-400">Fullscreen</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <kbd class="px-2 py-1 bg-[var(--bg-tertiary)] rounded border border-[var(--border-default)] font-mono">?</kbd>
+          <span class="text-gray-400">Help</span>
+        </div>
+      </div>
     </div>
 
     <!-- API Status -->
-    <div class="mt-8 text-center">
+    <div class="mt-6 text-center">
       <div class="inline-flex items-center gap-2 text-sm text-gray-500">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
         <span>Server Status: </span>
         <a href="/api/health" class="text-gray-400 hover:text-white transition">/api/health</a>
+        <span class="mx-2">|</span>
+        <a href="/api/state" class="text-gray-400 hover:text-white transition">/api/state</a>
       </div>
     </div>
+
+    <!-- Version -->
+    <div class="mt-4 text-center text-xs text-gray-600">
+      SEMEEX Broadcast System v1.1.0
+    </div>
   </div>
+
+  <script src="/js/ws-client.js"></script>
 </body>
 </html>

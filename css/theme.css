@@ -1,0 +1,307 @@
+/**
+ * SEMEEX Broadcast System - Theme & Design Tokens
+ * Centralized CSS custom properties for consistent theming
+ *
+ * Usage: Include this file before other stylesheets
+ * Override variables via query params or custom theme files
+ */
+
+:root {
+  /* ============================================================================
+   * Brand Colors
+   * ============================================================================ */
+  --brand-primary: #c41e3a;
+  --brand-primary-light: #e62e4a;
+  --brand-primary-dark: #a01830;
+  --brand-secondary: #1a1a2e;
+  --brand-accent: #ffd700;
+
+  /* ============================================================================
+   * Semantic Colors
+   * ============================================================================ */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ============================================================================
+   * Superchat Tier Colors (YouTube standard)
+   * ============================================================================ */
+  --superchat-tier-1: #1e88e5; /* Blue - $1-1.99 */
+  --superchat-tier-2: #00e5ff; /* Teal - $2-4.99 */
+  --superchat-tier-3: #ffb300; /* Yellow - $5-9.99 */
+  --superchat-tier-4: #f57c00; /* Orange - $10-19.99 */
+  --superchat-tier-5: #e91e63; /* Magenta - $20-49.99 */
+  --superchat-tier-6: #e62117; /* Red - $50-99.99 */
+  --superchat-tier-7: #e62117; /* Red - $100+ */
+
+  /* ============================================================================
+   * Background Colors
+   * ============================================================================ */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-elevated: #475569;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  --bg-glass: rgba(255, 255, 255, 0.05);
+
+  /* ============================================================================
+   * Text Colors
+   * ============================================================================ */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+
+  /* ============================================================================
+   * Border Colors
+   * ============================================================================ */
+  --border-default: #334155;
+  --border-light: #475569;
+  --border-focus: var(--brand-primary);
+
+  /* ============================================================================
+   * Typography
+   * ============================================================================ */
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  --text-5xl: 3rem;      /* 48px */
+
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* Line Heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* ============================================================================
+   * Spacing Scale
+   * ============================================================================ */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* ============================================================================
+   * Border Radius
+   * ============================================================================ */
+  --radius-sm: 0.25rem;  /* 4px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem;   /* 8px */
+  --radius-xl: 0.75rem;  /* 12px */
+  --radius-2xl: 1rem;    /* 16px */
+  --radius-full: 9999px;
+
+  /* ============================================================================
+   * Shadows
+   * ============================================================================ */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(196, 30, 58, 0.4);
+  --shadow-glow-accent: 0 0 20px rgba(255, 215, 0, 0.4);
+
+  /* ============================================================================
+   * Transitions
+   * ============================================================================ */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease;
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ============================================================================
+   * Z-Index Scale
+   * ============================================================================ */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  /* ============================================================================
+   * Component-Specific Variables
+   * ============================================================================ */
+
+  /* Ticker */
+  --ticker-bg: var(--brand-primary);
+  --ticker-text: var(--text-primary);
+  --ticker-speed: 100px;
+  --ticker-height: 60px;
+
+  /* Chat Display */
+  --chat-avatar-size: 48px;
+  --chat-bubble-bg: var(--bg-secondary);
+  --chat-bubble-radius: var(--radius-xl);
+
+  /* Slideshow */
+  --slideshow-transition-duration: 0.4s;
+  --slideshow-sidebar-width: 256px;
+
+  /* Sports Ticker */
+  --sports-ticker-height: 48px;
+  --sports-badge-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  --sports-category-bg: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+}
+
+/* ============================================================================
+ * Dark Mode (Default)
+ * ============================================================================ */
+[data-theme="dark"] {
+  /* Already default - these are here for documentation */
+}
+
+/* ============================================================================
+ * Light Mode Override
+ * ============================================================================ */
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #e2e8f0;
+  --bg-tertiary: #cbd5e1;
+  --bg-elevated: #94a3b8;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverse: #f8fafc;
+
+  --border-default: #cbd5e1;
+  --border-light: #e2e8f0;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================================
+ * Sports Theme Variants
+ * ============================================================================ */
+[data-theme="football"] {
+  --brand-primary: #1d4ed8;
+  --brand-primary-light: #3b82f6;
+  --brand-primary-dark: #1e40af;
+  --brand-accent: #22c55e;
+}
+
+[data-theme="basketball"] {
+  --brand-primary: #ea580c;
+  --brand-primary-light: #f97316;
+  --brand-primary-dark: #c2410c;
+  --brand-accent: #1d4ed8;
+}
+
+[data-theme="esports"] {
+  --brand-primary: #8b5cf6;
+  --brand-primary-light: #a78bfa;
+  --brand-primary-dark: #7c3aed;
+  --brand-accent: #22d3ee;
+}
+
+/* ============================================================================
+ * Utility Classes
+ * ============================================================================ */
+.text-brand { color: var(--brand-primary); }
+.text-brand-light { color: var(--brand-primary-light); }
+.text-accent { color: var(--brand-accent); }
+.bg-brand { background-color: var(--brand-primary); }
+.bg-brand-light { background-color: var(--brand-primary-light); }
+.border-brand { border-color: var(--brand-primary); }
+
+.shadow-glow { box-shadow: var(--shadow-glow); }
+.shadow-glow-accent { box-shadow: var(--shadow-glow-accent); }
+
+.transition-fast { transition: all var(--transition-fast); }
+.transition-normal { transition: all var(--transition-normal); }
+.transition-slow { transition: all var(--transition-slow); }
+.transition-bounce { transition: all var(--transition-bounce); }
+
+/* ============================================================================
+ * Animation Keyframes
+ * ============================================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideRight {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+
+/* Animation utility classes */
+.animate-fade-in { animation: fadeIn var(--transition-normal) forwards; }
+.animate-fade-out { animation: fadeOut var(--transition-normal) forwards; }
+.animate-slide-up { animation: slideUp var(--transition-normal) forwards; }
+.animate-slide-down { animation: slideDown var(--transition-normal) forwards; }
+.animate-pulse { animation: pulse 2s infinite; }
+.animate-bounce { animation: bounce 1s infinite; }
+.animate-spin { animation: spin 1s linear infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}

@@ -25,7 +25,7 @@
     }
 
     /* ========================================
-       Ticker Container - Tape/Paper Style
+       Ticker Container - Clean Broadcast Style
     ======================================== */
     .ticker-wrapper {
       position: fixed;
@@ -35,68 +35,13 @@
       min-height: 100px;
     }
 
-    /* Tape pieces */
-    .tape {
-      position: absolute;
-      width: 70px;
-      height: 28px;
-      background: linear-gradient(
-        180deg,
-        rgba(255, 235, 180, 0.85) 0%,
-        rgba(245, 222, 160, 0.9) 50%,
-        rgba(235, 210, 145, 0.85) 100%
-      );
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-      z-index: 10;
-      transform-origin: center center;
-    }
-
-    .tape::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        transparent 3px,
-        rgba(200, 180, 120, 0.15) 3px,
-        rgba(200, 180, 120, 0.15) 4px
-      );
-    }
-
-    .tape-left {
-      top: -10px;
-      left: 40px;
-      transform: rotate(-6deg);
-    }
-
-    .tape-right {
-      top: -8px;
-      right: 50px;
-      transform: rotate(4deg);
-    }
-
-    .tape-bottom-left {
-      bottom: -12px;
-      left: 60px;
-      transform: rotate(5deg);
-    }
-
-    .tape-bottom-right {
-      bottom: -10px;
-      right: 40px;
-      transform: rotate(-3deg);
-    }
-
     /* Top accent bar */
     .accent-bar-top {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      height: 6px;
+      height: 4px;
       background: var(--accent-color, #c41e3a);
       z-index: 5;
     }
@@ -107,88 +52,25 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 6px;
+      height: 4px;
       background: var(--accent-color, #c41e3a);
       z-index: 5;
     }
 
-    /* Ripped edge effect - top */
-    .ripped-edge-top {
-      position: absolute;
-      top: 6px;
-      left: 0;
-      right: 0;
-      height: 12px;
-      background: white;
-      z-index: 6;
-      clip-path: polygon(
-        0% 100%,
-        2% 70%, 4% 100%, 6% 65%, 8% 95%, 10% 70%,
-        12% 100%, 14% 60%, 16% 90%, 18% 70%, 20% 100%,
-        22% 75%, 24% 95%, 26% 65%, 28% 100%, 30% 70%,
-        32% 90%, 34% 60%, 36% 100%, 38% 75%, 40% 95%,
-        42% 65%, 44% 100%, 46% 70%, 48% 90%, 50% 65%,
-        52% 100%, 54% 75%, 56% 90%, 58% 65%, 60% 100%,
-        62% 70%, 64% 95%, 66% 60%, 68% 100%, 70% 75%,
-        72% 90%, 74% 65%, 76% 100%, 78% 70%, 80% 95%,
-        82% 65%, 84% 100%, 86% 75%, 88% 90%, 90% 65%,
-        92% 100%, 94% 70%, 96% 90%, 98% 65%, 100% 100%
-      );
-    }
-
-    /* Ripped edge effect - bottom */
-    .ripped-edge-bottom {
-      position: absolute;
-      bottom: 6px;
-      left: 0;
-      right: 0;
-      height: 12px;
-      background: white;
-      z-index: 6;
-      clip-path: polygon(
-        0% 0%,
-        2% 35%, 4% 0%, 6% 40%, 8% 10%, 10% 35%,
-        12% 0%, 14% 45%, 16% 15%, 18% 35%, 20% 0%,
-        22% 30%, 24% 10%, 26% 40%, 28% 0%, 30% 35%,
-        32% 15%, 34% 45%, 36% 0%, 38% 30%, 40% 10%,
-        42% 40%, 44% 0%, 46% 35%, 48% 15%, 50% 40%,
-        52% 0%, 54% 30%, 56% 15%, 58% 40%, 60% 0%,
-        62% 35%, 64% 10%, 66% 45%, 68% 0%, 70% 30%,
-        72% 15%, 74% 40%, 76% 0%, 78% 35%, 80% 10%,
-        82% 40%, 84% 0%, 86% 30%, 88% 15%, 90% 40%,
-        92% 0%, 94% 35%, 96% 15%, 98% 40%, 100% 0%
-      );
-    }
-
-    /* Main Paper Panel */
+    /* Main Panel */
     .ticker-paper {
-      background: white;
-      margin: 6px 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+      margin: 4px 0;
       padding: 16px 24px;
       position: relative;
       box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.12),
-        0 8px 40px rgba(0, 0, 0, 0.08);
-      height: 68px;
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 8px 40px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      height: 72px;
       display: flex;
       align-items: center;
-    }
-
-    /* Paper texture overlay */
-    .ticker-paper::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          0deg,
-          transparent 0px,
-          transparent 2px,
-          rgba(0, 0, 0, 0.01) 2px,
-          rgba(0, 0, 0, 0.01) 3px
-        );
-      pointer-events: none;
-      z-index: 1;
+      border-radius: 2px;
     }
 
     /* ========================================
@@ -211,6 +93,8 @@
       display: inline-block;
       white-space: nowrap;
       will-change: transform;
+      transform: translateZ(0);  /* Force GPU layer */
+      backface-visibility: hidden;
     }
 
     .ticker-text {
@@ -265,31 +149,15 @@
       pointer-events: none;
     }
 
-    /* Title Badge - Paper style with accent */
+    /* Title Badge - Clean broadcast style */
     .ticker-title {
       background: var(--accent-color, #c41e3a);
-      padding: 8px 20px;
+      padding: 8px 24px;
       flex-shrink: 0;
       will-change: transform, opacity, filter;
       transform-origin: left center;
       position: relative;
-    }
-
-    /* Torn edge on title badge */
-    .ticker-title::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: -8px;
-      bottom: 0;
-      width: 8px;
-      background: var(--accent-color, #c41e3a);
-      clip-path: polygon(
-        0% 0%,
-        100% 10%, 50% 20%, 100% 30%, 50% 40%,
-        100% 50%, 50% 60%, 100% 70%, 50% 80%,
-        100% 90%, 0% 100%
-      );
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
     }
 
     .ticker-title .title-text {
@@ -347,6 +215,8 @@
       will-change: transform;
       padding-right: 50px;
       visibility: hidden;  /* Hide until positioned */
+      transform: translateZ(0);  /* Force GPU layer */
+      backface-visibility: hidden;
     }
 
     /* ========================================
@@ -617,6 +487,8 @@
       will-change: transform;
       left: 0;
       /* Position controlled by GSAP transform */
+      transform: translateZ(0);  /* Force GPU layer */
+      backface-visibility: hidden;
     }
 
     /* Hide unused elements */
@@ -633,25 +505,17 @@
 </head>
 <body>
   <div id="tickerWrapper" class="ticker-wrapper">
-    <!-- Tape pieces -->
-    <div class="tape tape-left" id="tapeLeft"></div>
-    <div class="tape tape-right" id="tapeRight"></div>
-    <div class="tape tape-bottom-left" id="tapeBottomLeft"></div>
-    <div class="tape tape-bottom-right" id="tapeBottomRight"></div>
-
-    <!-- Top accent bar and ripped edge -->
+    <!-- Top accent bar -->
     <div class="accent-bar-top" id="accentTop"></div>
-    <div class="ripped-edge-top"></div>
 
-    <!-- Main Paper Panel -->
+    <!-- Main Panel -->
     <div class="ticker-paper">
       <div class="ticker-content-area" id="tickerContent">
         <div class="waiting-message">Connecting to server...</div>
       </div>
     </div>
 
-    <!-- Bottom ripped edge and accent bar -->
-    <div class="ripped-edge-bottom"></div>
+    <!-- Bottom accent bar -->
     <div class="accent-bar-bottom" id="accentBottom"></div>
 
     <!-- Scanner -->
@@ -704,15 +568,16 @@
     let pinnedMessage = null;
     let tickerSpeed = config.speed;
     let showTicker = true;
-    let tickerStyle = 'tape';
+    let tickerStyle = 'standard';
     let sportsTicker = { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '' };
     let currentIndex = 0;
     let isTransitioning = false;
     let scrollAnimation = null;
 
-    // DOM Elements - Tape Style
+    // DOM Elements - Standard Style
     const wrapper = document.getElementById('tickerWrapper');
-    const tapeLeft = document.getElementById('tapeLeft');
+    const accentTop = document.getElementById('accentTop');
+    const accentBottom = document.getElementById('accentBottom');
 
     // DOM Elements - Sports Style
     const sportsWrapper = document.getElementById('sportsTickerWrapper');
@@ -723,11 +588,6 @@
     const sportsTickerDisplay = document.getElementById('sportsTickerDisplay');
     let sportsCurrentIndex = 0;
     let sportsAnimationTimeline = null;
-    const tapeRight = document.getElementById('tapeRight');
-    const tapeBottomLeft = document.getElementById('tapeBottomLeft');
-    const tapeBottomRight = document.getElementById('tapeBottomRight');
-    const accentTop = document.getElementById('accentTop');
-    const accentBottom = document.getElementById('accentBottom');
 
     // DOM refs for parallax ticker
     let currentTitleEl = null;
@@ -744,23 +604,18 @@
     // ========================================================================
     function animateWrapperIn() {
       // Set initial states
-      gsap.set(wrapper, { opacity: 1 });
-      gsap.set([tapeLeft, tapeRight], { opacity: 0, rotation: '+=15', scale: 0.6 });
-      gsap.set([tapeBottomLeft, tapeBottomRight], { opacity: 0, rotation: '-=15', scale: 0.6 });
+      gsap.set(wrapper, { opacity: 0, y: 20 });
       gsap.set(accentTop, { scaleX: 0, transformOrigin: 'left center' });
       gsap.set(accentBottom, { scaleX: 0, transformOrigin: 'right center' });
 
       const tl = gsap.timeline();
 
-      // Accent bars sweep in
-      tl.to(accentTop, { scaleX: 1, duration: 0.4, ease: 'power2.out' });
-      tl.to(accentBottom, { scaleX: 1, duration: 0.4, ease: 'power2.out' }, '-=0.3');
+      // Wrapper fades in
+      tl.to(wrapper, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
 
-      // Tape pieces slap down
-      tl.to(tapeLeft, { opacity: 1, rotation: -6, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.2');
-      tl.to(tapeRight, { opacity: 1, rotation: 4, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.3');
-      tl.to(tapeBottomLeft, { opacity: 1, rotation: 5, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.25');
-      tl.to(tapeBottomRight, { opacity: 1, rotation: -3, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '-=0.3');
+      // Accent bars sweep in
+      tl.to(accentTop, { scaleX: 1, duration: 0.5, ease: 'power4.out' }, '-=0.2');
+      tl.to(accentBottom, { scaleX: 1, duration: 0.5, ease: 'power4.out' }, '-=0.35');
     }
 
     // ========================================================================
@@ -820,15 +675,17 @@
           break;
 
         case 'ticker_update':
-          console.log('[Ticker] Update with', data.data.tickerItems?.length, 'items, style:', data.data.tickerStyle);
+          console.log('[Ticker] Update with', data.data.tickerItems?.length, 'items, style:', data.data.tickerStyle, 'speed:', data.data.tickerSpeed);
+          const itemsChanged = data.data.tickerItems !== undefined;
+          const speedChanged = data.data.tickerSpeed !== undefined && data.data.tickerSpeed !== tickerSpeed;
           if (data.data.tickerItems) tickerItems = data.data.tickerItems;
           if (data.data.tickerSpeed !== undefined) tickerSpeed = data.data.tickerSpeed;
           if (data.data.showTicker !== undefined) showTicker = data.data.showTicker;
           if (data.data.tickerStyle) tickerStyle = data.data.tickerStyle;
           if (data.data.sportsTicker) sportsTicker = data.data.sportsTicker;
           updateTickerStyle();
-          // Re-initialize if items changed
-          if (data.data.tickerItems) {
+          // Re-initialize if items or speed changed
+          if (itemsChanged || speedChanged) {
             initTicker();
           }
           break;
@@ -935,17 +792,18 @@
         onComplete: () => {
           // Move to next item when complete
           sportsCurrentIndex = (sportsCurrentIndex + 1) % tickerItems.length;
-          // Small delay before next item
-          setTimeout(playSportsTickerItem, 100);
+          // Minimal delay before next item
+          setTimeout(playSportsTickerItem, 50);
         }
       });
 
-      // Reset initial states
+      // Reset initial states with organic offsets
       gsap.set(sportsTopicPill, {
         opacity: 0,
-        x: -80,
-        scale: 0.8,
-        filter: 'blur(8px)',
+        x: -60,
+        scale: 0.85,
+        rotation: 2,
+        filter: 'blur(6px)',
         boxShadow: '0 3px 12px rgba(0,0,0,0.5)'
       });
       gsap.set(sportsContentEl, {
@@ -953,54 +811,49 @@
         opacity: 0
       });
 
-      // Phase 1: Topic pill BURSTS in with dramatic entrance
+      // Phase 1: Topic pill enters quickly
       sportsAnimationTimeline.to(sportsTopicPill, {
         opacity: 1,
         x: 0,
         scale: 1,
+        rotation: 0,
         filter: 'blur(0px)',
-        boxShadow: '0 4px 20px rgba(255,234,0,0.4), 0 3px 12px rgba(0,0,0,0.5)',
-        duration: 0.6,
-        ease: 'back.out(1.4)'
+        boxShadow: '0 4px 15px rgba(255,234,0,0.4), 0 3px 10px rgba(0,0,0,0.5)',
+        duration: 0.35,
+        ease: 'back.out(1.2)'
       });
 
-      // Phase 1b: Quick highlight flash on pill
-      sportsAnimationTimeline.to(sportsTopicPill, {
-        boxShadow: '0 3px 12px rgba(0,0,0,0.5)',
-        duration: 0.3,
-        ease: 'power1.out'
-      });
-
-      // Phase 2: Description fades in and starts scrolling
+      // Phase 2: Description fades in immediately
       sportsAnimationTimeline.to(sportsContentEl, {
         opacity: 1,
-        duration: 0.3,
+        duration: 0.2,
         ease: 'power2.out'
-      }, '-=0.4');
+      }, '-=0.2');
 
       // Phase 3: Description scrolls across
       sportsAnimationTimeline.to(sportsContentEl, {
-        x: -contentWidth - 100,
+        x: -contentWidth - 50,
         duration: scrollDuration,
-        ease: 'none'
+        ease: 'none',
+        force3D: true  // Force GPU acceleration
       }, '-=0.1');
 
-      // Phase 4: Topic pill exits with blur and scale
+      // Phase 4: Topic pill exits quickly
       sportsAnimationTimeline.to(sportsTopicPill, {
         opacity: 0,
-        x: -60,
-        scale: 0.85,
-        filter: 'blur(6px)',
-        duration: 0.5,
-        ease: 'power3.in'
-      }, '>-0.4');
-
-      // Phase 5: Description fades out at the end
-      sportsAnimationTimeline.to(sportsContentEl, {
-        opacity: 0,
-        duration: 0.2,
+        x: -50,
+        scale: 0.9,
+        filter: 'blur(4px)',
+        duration: 0.25,
         ease: 'power2.in'
       }, '>-0.3');
+
+      // Phase 5: Description fades out
+      sportsAnimationTimeline.to(sportsContentEl, {
+        opacity: 0,
+        duration: 0.15,
+        ease: 'power2.in'
+      }, '>-0.2');
     }
 
     // ========================================================================
@@ -1047,6 +900,7 @@
         x: -textWidth,
         duration: duration,
         ease: 'none',
+        force3D: true,  // Force GPU acceleration
         repeat: -1,
         onUpdate: function() {
           const progress = this.progress() * 100;
@@ -1153,6 +1007,7 @@
         x: -contentWidth,
         duration: duration,
         ease: 'none',
+        force3D: true,  // Force GPU acceleration
         onUpdate: function() {
           const progress = this.progress() * 100;
           updateScanner(progress);
@@ -1180,36 +1035,55 @@
         }
       });
 
-      // Phase 1: Current exits (slide left with blur)
-      tl.to([currentTitleEl, currentSeparatorEl], {
-        x: -80,
+      // Phase 1: Current exits quickly
+      tl.to(currentTitleEl, {
+        x: -60,
         opacity: 0,
         scale: 0.9,
         filter: 'blur(4px)',
-        duration: 0.35,
-        ease: 'power2.in',
-        stagger: 0.05
+        duration: 0.25,
+        ease: 'power2.in'
       });
+
+      tl.to(currentSeparatorEl, {
+        x: -40,
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in'
+      }, '-=0.2');
 
       tl.to(currentContentMaskEl, {
         opacity: 0,
-        x: -40,
-        duration: 0.25,
+        x: -30,
+        duration: 0.2,
         ease: 'power2.in'
-      }, '-=0.3');
+      }, '-=0.2');
 
-      // Phase 2: Next enters (slide from right)
+      // Phase 2: Next enters quickly
       if (nextTitleEl) {
-        tl.fromTo([nextTitleEl, nextSeparatorEl],
-          { x: 60, opacity: 0, scale: 0.9, filter: 'blur(4px)' },
-          { x: 0, opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4, ease: 'power2.out', stagger: 0.08 },
-          '-=0.15'
+        tl.fromTo(nextTitleEl,
+          { x: 50, opacity: 0, scale: 0.9, filter: 'blur(4px)' },
+          {
+            x: 0,
+            opacity: 1,
+            scale: 1,
+            filter: 'blur(0px)',
+            duration: 0.3,
+            ease: 'back.out(1.2)'
+          },
+          '-=0.1'
+        );
+
+        tl.fromTo(nextSeparatorEl,
+          { x: 30, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.25, ease: 'power2.out' },
+          '-=0.2'
         );
 
         tl.fromTo(nextContentMaskEl,
           { opacity: 0, x: 30 },
-          { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' },
-          '-=0.2'
+          { opacity: 1, x: 0, duration: 0.25, ease: 'power2.out' },
+          '-=0.15'
         );
       }
     }
@@ -1271,9 +1145,15 @@
     }
 
     // ========================================================================
-    // Scanner Updates
+    // Scanner Updates (throttled for performance)
     // ========================================================================
+    let lastScannerUpdate = 0;
     function updateScanner(progress) {
+      // Throttle to ~30fps to reduce DOM updates
+      const now = performance.now();
+      if (now - lastScannerUpdate < 33 && progress > 0 && progress < 100) return;
+      lastScannerUpdate = now;
+
       const fill = document.getElementById('scannerFill');
       const head = document.getElementById('scannerHead');
       if (fill) fill.style.width = `${progress}%`;
@@ -1287,12 +1167,12 @@
       console.log('[Ticker] Updating style to:', tickerStyle);
 
       if (tickerStyle === 'sports') {
-        // Hide tape style, show sports style
+        // Hide standard style, show sports style
         wrapper.style.display = 'none';
         sportsWrapper.classList.add('active');
         updateSportsContent();
       } else {
-        // Show tape style, hide sports style
+        // Show standard style, hide sports style
         wrapper.style.display = showTicker ? 'block' : 'none';
         sportsWrapper.classList.remove('active');
       }
@@ -1319,7 +1199,7 @@
         tickerItems = [
           { title: 'BREAKING', content: 'This is the first ticker item with important news for your broadcast' },
           { title: 'SPORTS', content: 'Second item showcasing the parallax transition effect with smooth animations' },
-          { title: 'WEATHER', content: 'Third item demonstrating the tape and ripped paper aesthetic design' }
+          { title: 'WEATHER', content: 'Third item demonstrating the clean broadcast ticker design' }
         ];
         showTicker = true;
         animateWrapperIn();

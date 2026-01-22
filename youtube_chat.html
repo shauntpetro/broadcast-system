@@ -3,294 +3,1134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Chat Control Panel</title>
+  <title>SEMEEX Broadcast Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    body { background: #0f0f0f; color: #fff; }
+    :root {
+      color-scheme: dark;
+      --semeex-red: #da020e;
+      --semeex-red-dark: #9a0109;
+      --semeex-gold: #ffd700;
+      --semeex-gold-dark: #b8860b;
+      --surface-dark: #0a0a0a;
+      --surface-mid: #141414;
+      --surface-light: #1e1e1e;
+      --border-color: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-muted: #888888;
+    }
+
+    * {
+      font-family: 'Oswald', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--surface-dark);
+      color: var(--text-primary);
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(218, 2, 14, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(218, 2, 14, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Scanlines overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.1) 2px,
+        rgba(0, 0, 0, 0.1) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.3;
+    }
 
     /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #1a1a1a; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #444; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface-dark); }
+    ::-webkit-scrollbar-thumb {
+      background: var(--semeex-red);
+      border-radius: 0;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--semeex-gold); }
 
-    /* Superchat tier colors */
-    .tier-1 { background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%); }
-    .tier-2 { background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 100%); }
-    .tier-3 { background: linear-gradient(135deg, #ffb300 0%, #ff8f00 100%); }
-    .tier-4 { background: linear-gradient(135deg, #f57c00 0%, #e65100 100%); }
-    .tier-5 { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); }
-    .tier-6, .tier-7 { background: linear-gradient(135deg, #e62117 0%, #c62828 100%); }
-    .tier-7 { box-shadow: 0 0 20px rgba(230, 33, 23, 0.5); }
+    /* Typography classes */
+    .font-display { font-family: 'Bebas Neue', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Broadcast header bar */
+    .broadcast-header {
+      background: linear-gradient(180deg, var(--surface-mid) 0%, var(--surface-dark) 100%);
+      border-bottom: 3px solid var(--semeex-red);
+      position: relative;
+    }
+
+    .broadcast-header::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg,
+        var(--semeex-red) 0%,
+        var(--semeex-gold) 50%,
+        var(--semeex-red) 100%
+      );
+      animation: headerGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes headerGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
 
     /* Status indicator */
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+    }
+
     .status-dot {
       width: 10px;
       height: 10px;
-      border-radius: 50%;
-      display: inline-block;
+      border-radius: 0;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
     }
-    .status-dot.connected { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
-    .status-dot.disconnected { background: #ef4444; }
-    .status-dot.connecting { background: #eab308; animation: pulse 1s infinite; }
 
-    @keyframes pulse {
+    .status-dot.connected {
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+    .status-dot.disconnected { background: #ef4444; }
+    .status-dot.connecting {
+      background: var(--semeex-gold);
+      animation: statusBlink 1s infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { box-shadow: 0 0 12px #22c55e; }
+      50% { box-shadow: 0 0 20px #22c55e, 0 0 30px #22c55e; }
+    }
+
+    @keyframes statusBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Panel styling */
+    .control-panel {
+      background: var(--surface-mid);
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .control-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--semeex-red), transparent);
+    }
+
+    .panel-header {
+      background: linear-gradient(180deg, var(--surface-light) 0%, var(--surface-mid) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--semeex-red);
+    }
+
+    .panel-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 4px 10px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    /* Input styling */
+    .broadcast-input {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 12px 16px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .broadcast-input:focus-visible {
+      outline: none;
+      border-color: var(--semeex-red);
+      box-shadow: 0 0 0 2px rgba(218, 2, 14, 0.2);
+    }
+
+    .broadcast-input::placeholder {
+      color: var(--text-muted);
+      font-family: 'Oswald', sans-serif;
+    }
+
+    /* Button styling */
+    .btn {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--semeex-gold);
+      outline-offset: 2px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, var(--semeex-red) 0%, var(--semeex-red-dark) 100%);
+      color: white;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(180deg, #ff1a1a 0%, var(--semeex-red) 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface-light);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-mid);
+      border-color: var(--semeex-gold);
+      color: var(--semeex-gold);
+    }
+
+    .btn-gold {
+      background: linear-gradient(180deg, var(--semeex-gold) 0%, var(--semeex-gold-dark) 100%);
+      color: black;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(180deg, #ffe44d 0%, var(--semeex-gold) 100%);
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 6px 12px;
+      letter-spacing: 1px;
+    }
+
+    /* Message items */
+    .message-item {
+      background: var(--surface-mid);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--semeex-red);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      position: relative;
+      border-radius: 4px;
+    }
+
+    .message-item:hover {
+      background: var(--surface-light);
+      border-color: var(--semeex-gold);
+      border-left-color: var(--semeex-gold);
+    }
+
+    .message-item.pinned {
+      background: rgba(218, 2, 14, 0.1);
+      border-left-color: var(--semeex-gold);
+      border-color: rgba(255, 215, 0, 0.3);
+    }
+
+    .message-item.pinned::after {
+      content: 'PINNED';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 2px 6px;
+      background: var(--semeex-gold);
+      color: black;
+    }
+
+    .pin-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .message-item:hover .pin-btn {
+      opacity: 1;
+    }
+
+    .message-item.pinned .pin-btn {
+      opacity: 1;
+    }
+
+    /* Superchat tiers */
+    .tier-1 { background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%); border-left-color: #1e88e5; }
+    .tier-2 { background: linear-gradient(135deg, #00e5ff 0%, #00b8d4 100%); border-left-color: #00e5ff; }
+    .tier-3 { background: linear-gradient(135deg, #ffb300 0%, #ff8f00 100%); border-left-color: #ffb300; }
+    .tier-4 { background: linear-gradient(135deg, #f57c00 0%, #e65100 100%); border-left-color: #f57c00; }
+    .tier-5 { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); border-left-color: #e91e63; }
+    .tier-6, .tier-7 {
+      background: linear-gradient(135deg, #e62117 0%, #c62828 100%);
+      border-left-color: #e62117;
+    }
+    .tier-7 {
+      box-shadow: 0 0 20px rgba(230, 33, 23, 0.5);
+      animation: superchatGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes superchatGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(230, 33, 23, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(230, 33, 23, 0.8), 0 0 40px rgba(255, 215, 0, 0.3); }
+    }
+
+    /* Live indicator */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--semeex-red);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 2px;
+      animation: livePulse 2s ease-in-out infinite;
+    }
+
+    .live-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: liveDot 1s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 10px rgba(218, 2, 14, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(218, 2, 14, 0.8); }
+    }
+
+    @keyframes liveDot {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
 
-    /* Message hover */
-    .message-item:hover { background: rgba(255,255,255,0.05); }
-    .message-item.pinned { background: rgba(220, 38, 38, 0.15); border-left: 3px solid #dc2626; }
+    /* Logo styling */
+    .semeex-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-    /* Pin button */
-    .pin-btn { opacity: 0; transition: opacity 0.2s; }
-    .message-item:hover .pin-btn { opacity: 1; }
-    .message-item.pinned .pin-btn { opacity: 1; }
+    .semeex-logo .devil-icon {
+      width: 40px;
+      height: 40px;
+      fill: var(--semeex-red);
+      filter: drop-shadow(0 0 8px rgba(218, 2, 14, 0.5));
+    }
+
+    .semeex-logo .brand-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 4px;
+      background: linear-gradient(180deg, var(--semeex-gold) 0%, var(--semeex-gold-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+    }
+
+    .semeex-logo .subtitle {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Quick action buttons */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      min-width: 80px;
+    }
+
+    .quick-action-btn:hover {
+      border-color: var(--semeex-red);
+      background: rgba(218, 2, 14, 0.1);
+    }
+
+    .quick-action-btn:focus-visible {
+      outline: 2px solid var(--semeex-gold);
+      outline-offset: 2px;
+    }
+
+    .quick-action-btn svg {
+      width: 24px;
+      height: 24px;
+      color: var(--semeex-gold);
+    }
+
+    .quick-action-btn span {
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* Ticker item styling */
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      margin-bottom: 6px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .ticker-item:hover {
+      border-color: var(--semeex-red);
+    }
+
+    .ticker-item-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 4px 8px;
+      background: var(--semeex-red);
+      color: white;
+      white-space: nowrap;
+    }
+
+    .ticker-item-content {
+      flex: 1;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ticker-item-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .ticker-item:hover .ticker-item-actions {
+      opacity: 1;
+    }
+
+    .ticker-item-actions button {
+      padding: 4px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .ticker-item-actions button:hover {
+      color: var(--semeex-red);
+    }
+
+    /* Range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--surface-dark);
+      height: 6px;
+      border-radius: 0;
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--semeex-gold);
+      outline-offset: 2px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--semeex-red);
+      cursor: pointer;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: var(--semeex-gold);
+    }
+
+    /* Select styling */
+    select {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      padding: 8px 32px 8px 12px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23888' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 20px;
+    }
+
+    select:focus-visible {
+      border-color: var(--semeex-red);
+      outline: 2px solid var(--semeex-gold);
+      outline-offset: 2px;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      position: relative;
+    }
+
+    input[type="checkbox"]:checked {
+      background: var(--semeex-red);
+      border-color: var(--semeex-red);
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+    }
+
+    /* Section divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+      margin: 16px 0;
+    }
+
+    /* Accordion styling */
+    .accordion-header {
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+
+    .accordion-header:hover {
+      background: var(--surface-light);
+    }
+
+    .accordion-toggle {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+      color: var(--text-muted);
+    }
+
+    .accordion-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .accordion-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .accordion-content.collapsed {
+      max-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    /* Grid layout - 2 column for larger chat areas */
+    .broadcast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .broadcast-grid .control-panel:last-child {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 900px) {
+      .broadcast-grid {
+        grid-template-columns: 1fr;
+      }
+      .broadcast-grid .control-panel:last-child {
+        grid-column: span 1;
+      }
+    }
+
+    /* Corner accents */
+    .corner-accent {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: var(--semeex-red);
+      border-style: solid;
+      border-width: 0;
+      opacity: 0.5;
+    }
+
+    .corner-accent.top-left {
+      top: 0;
+      left: 0;
+      border-top-width: 2px;
+      border-left-width: 2px;
+    }
+
+    .corner-accent.top-right {
+      top: 0;
+      right: 0;
+      border-top-width: 2px;
+      border-right-width: 2px;
+    }
+
+    .corner-accent.bottom-left {
+      bottom: 0;
+      left: 0;
+      border-bottom-width: 2px;
+      border-left-width: 2px;
+    }
+
+    .corner-accent.bottom-right {
+      bottom: 0;
+      right: 0;
+      border-bottom-width: 2px;
+      border-right-width: 2px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    /* Pinned preview */
+    .pinned-preview-container {
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(218, 2, 14, 0.05) 0%, transparent 70%),
+        var(--surface-dark);
+    }
+
+    .pinned-preview-empty {
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .pinned-preview-empty svg {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      opacity: 0.3;
+      color: var(--semeex-gold);
+    }
+
+    /* Author badge */
+    .author-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      text-transform: uppercase;
+    }
+
+    .author-badge.member {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+    }
+
+    .author-badge.mod {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .author-badge.owner {
+      background: linear-gradient(135deg, var(--semeex-gold) 0%, var(--semeex-gold-dark) 100%);
+      color: black;
+    }
+
+    /* Content area padding */
+    .content-area {
+      position: relative;
+      z-index: 1;
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
-<body class="min-h-screen">
-  <div class="container mx-auto p-4 max-w-6xl">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-3">
-        <svg class="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-        <h1 class="text-2xl font-bold">YouTube Chat Control Panel</h1>
-      </div>
-      <div class="flex items-center gap-2 text-sm">
-        <span class="status-dot disconnected" id="statusDot"></span>
-        <span id="statusText">Disconnected</span>
-      </div>
-    </div>
+<body>
+  <!-- Broadcast Header -->
+  <header class="broadcast-header">
+    <div class="content-area" style="padding-top: 16px; padding-bottom: 16px;">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="semeex-logo" style="text-decoration: none;">
+          <svg class="devil-icon" viewBox="0 0 79.4 106.1" xmlns="http://www.w3.org/2000/svg">
+            <path d="M64.6,45.7v-4.3s-1.1-1.8-4-1.8-4.5.8-4.5,1.6c0,1.2,2.5,4.5,8.5,4.5M42.3,7.6L46.5.2l3.3,7.5h5.5c-3.3,3.1-4.7,7.9-4.7,11v3.5c0,1.5-.7,3.9-.7,3.9,0,0,4.8,3.7,5.6,4.3.3.2.7.4.4,1-.4,1.1-3.7,2.5-4,2.8-.7.7-.9,1-.7,1.7.2.6.8.7,2.1.3,1.3-.4,3.9-1.8,6.1-2.7,2.2-1,5.1-.7,5.1-.7v-4.2h-8.3v-13.4l-1.5-2.4,3.7-6.5,3.7,6.6-1.5,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.4,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.5,2.3v13.4c0,0-8.3,0-8.3,0v6.2c1.9,1.8,3.7,5.8,3.7,8.2s-1.6,3.5-1.6,3.5c.5,1.9.4,2.7.2,4.4-.2,1.8-2.4,4.5-2.4,4.5v32c0,2.2-5,2-5,0v-31.4c-2.8-3.1-10.6-5.6-10.6-5.6-2.8,2.8-4.6,7.8-4.6,7.8,1.2.9,3.2,0,3.9-.8.7-.8,2.2-1.1,3-.5.8.5,1,.7.8,2-.3,1.3-.8,3.4-.8,4.8s1.7,1.2,2.9,1.3c2.5.2,2.9,3,2.7,4.6s-1,4.9-1,7,.1,4.2.3,5.3c.2,1.1.6,2.4.5,3.9-.1,2-1.3,2.3-2.6,1-1.2-1.2-18.8-19.9-18.8-19.9-1.2,3.8,3.7,10.3,5.2,12.3,1.6,2,1.5,3.5,0,4.8-1.3,1.3-4,2.1-4.5,3.3-.5,1.2,1.2,5,4.9,9.8,3.7,4.7-4.2,7.9-8.9,8.8-4.7.9-4.7-2.3-4.4-4.1.3-1.8.3-2.8.2-4.4,0-1.6-1.5-3.8-3.6-6.4-2-2.6-2-5-1.2-11.1.8-6.1.6-10,.6-10,0,0-2.1,0-5.1,0-3-.1-5.5-1.9-5.8-9.2-.2-7.3-.4-24.8-.9-26.7-.5-1.8-2.4-2.1-3.3-2.4-.9-.2-.9-1.5,0-1.9,2.2-1.1,4.8-3.8,3.8-5.4-1-1.7-4.8-1.3-7.4,0-2.6,1.2-5.3,4-6,4.8-.7.7-1.3.7-1.2,0,0-.9-.5-4.9-.8-6.2-.4-1.4-1.6-4-2-4.7-.4-.7,0-1,.7-.7.7.3,2.2.9,3.7,1.3,1.5.4,2.9-.3,3.6-1.6.7-1.4,2.1-4.4,2.8-5.8.7-1.3,1.8-1,2.7-.8.9.2,1.7.8,2.6,1.1.8.4,1.5.3,1.8-.1.3-.4.6-.6,1.1-1.6.5-1,1.1-.6,1.2-.1,2.5,15,9,15.7,9,15.7-1,2.5-3.3,6.5-3.8,7.5-.6.9-.8,2.3-1,3.3-.1,1,.4,11,1.1,14.6.7,3.6,2.9,2.2,3.7,1.1.7-1.1,2.9-5.7,2.9-5.7,0,0,.5-1.3.5-2.3s-1.8-3.3-2.2-4c-.4-.7-2-2.1-2-5.6s3.1-5.9,4.3-6.8c1.1-.9,1.1-2.2,1-3-.5-2.7-3.4-8.4-4.7-10.6-1.4-2.2-4.1-6.3-4.1-6.3h5.7L34.1,0l4,7.6h4.1s0,0,0,0ZM41.3,30.6c1.8-3,2.6-6.2,2.6-6.2h-5.3s.9,3.2,2.7,6.2M35.8,15.2c.2,1.6,1.4,2.2,2.3,1.7.9-.5.7-1.8,0-2.8-.6-1-1.9-2.1-2.3-1.9-.4.2-.2,2.1,0,3M46.4,12.2c-.4-.2-1.8.9-2.4,1.9-.6,1-.8,2.3,0,2.8.9.5,2-.1,2.3-1.7.2-.9.5-2.8,0-3"/>
+          </svg>
+          <div>
+            <div class="brand-text">SEMEEX</div>
+            <div class="subtitle">Broadcast Control Center</div>
+          </div>
+        </a>
 
-    <!-- YouTube URL Input -->
-    <div class="bg-[#1a1a1a] rounded-xl p-4 mb-4">
-      <div class="flex gap-3">
-        <input
-          type="text"
-          id="youtubeUrl"
-          placeholder="Paste YouTube Live URL or Video ID..."
-          class="flex-1 bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
-        >
-        <button onclick="connectToYouTube()" id="connectBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition">
-          Connect
-        </button>
-        <button onclick="disconnectFromYouTube()" id="disconnectBtn" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition hidden">
-          Disconnect
-        </button>
-      </div>
-      <p id="videoInfo" class="text-gray-500 text-sm mt-2 hidden">Connected to video: <span id="videoIdDisplay"></span></p>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Message Queue -->
-      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-gray-800">
-          <h2 class="font-semibold">Message Queue</h2>
-          <div class="flex items-center gap-2">
-            <span class="text-gray-500 text-sm"><span id="queueCount">0</span> messages</span>
-            <button onclick="clearQueue()" class="text-gray-500 hover:text-red-500 text-sm transition">Clear All</button>
+        <!-- Status -->
+        <div class="flex items-center gap-4">
+          <div id="liveBadge" class="live-badge hidden">LIVE</div>
+          <div class="status-indicator">
+            <span class="status-dot disconnected" id="statusDot"></span>
+            <span id="statusText" class="font-mono text-sm">DISCONNECTED</span>
           </div>
         </div>
-        <div id="messageQueue" class="h-[300px] overflow-y-auto p-2">
-          <div class="text-gray-500 text-center py-8">
-            No messages yet. Connect to a YouTube live stream or add messages manually.
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="content-area">
+    <!-- Connection Panel -->
+    <div class="control-panel mb-6">
+      <div class="corner-accent top-left"></div>
+      <div class="corner-accent top-right"></div>
+      <div class="corner-accent bottom-left"></div>
+      <div class="corner-accent bottom-right"></div>
+
+      <div class="panel-header">
+        <div class="panel-title">YouTube Connection</div>
+        <div class="flex items-center gap-4">
+          <span class="font-mono text-xs text-gray-500" id="videoInfo" style="display: none;">
+            VIDEO: <span id="videoIdDisplay" class="text-semeex-gold"></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <div class="flex gap-3">
+          <input
+            type="text"
+            id="youtubeUrl"
+            name="youtubeUrl"
+            placeholder="PASTE YOUTUBE LIVE URL OR VIDEO ID…"
+            class="broadcast-input flex-1"
+          >
+          <button onclick="connectToYouTube()" id="connectBtn" class="btn btn-primary">
+            Connect
+          </button>
+          <button onclick="disconnectFromYouTube()" id="disconnectBtn" class="btn btn-secondary hidden">
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="control-panel mb-6">
+      <div class="panel-header">
+        <div class="panel-title">Quick Actions</div>
+      </div>
+      <div class="p-4">
+        <div class="quick-actions">
+          <button onclick="openTicker()" class="quick-action-btn" aria-label="Open ticker display">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+            </svg>
+            <span>Ticker</span>
+          </button>
+          <button onclick="openChatOBS()" class="quick-action-btn" aria-label="Open chat OBS overlay">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span>Chat OBS</span>
+          </button>
+          <button onclick="openSemeexChatOBS()" class="quick-action-btn" style="border-color: var(--semeex-gold);" aria-label="Open Semeex OBS overlay">
+            <svg fill="currentColor" viewBox="0 0 79.4 106.1" style="width: 24px; height: 24px; color: var(--semeex-red);" aria-hidden="true">
+              <path d="M64.6,45.7v-4.3s-1.1-1.8-4-1.8-4.5.8-4.5,1.6c0,1.2,2.5,4.5,8.5,4.5M42.3,7.6L46.5.2l3.3,7.5h5.5c-3.3,3.1-4.7,7.9-4.7,11v3.5c0,1.5-.7,3.9-.7,3.9,0,0,4.8,3.7,5.6,4.3.3.2.7.4.4,1-.4,1.1-3.7,2.5-4,2.8-.7.7-.9,1-.7,1.7.2.6.8.7,2.1.3,1.3-.4,3.9-1.8,6.1-2.7,2.2-1,5.1-.7,5.1-.7v-4.2h-8.3v-13.4l-1.5-2.4,3.7-6.5,3.7,6.6-1.5,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.4,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.5,2.3v13.4c0,0-8.3,0-8.3,0v6.2c1.9,1.8,3.7,5.8,3.7,8.2s-1.6,3.5-1.6,3.5c.5,1.9.4,2.7.2,4.4-.2,1.8-2.4,4.5-2.4,4.5v32c0,2.2-5,2-5,0v-31.4c-2.8-3.1-10.6-5.6-10.6-5.6-2.8,2.8-4.6,7.8-4.6,7.8,1.2.9,3.2,0,3.9-.8.7-.8,2.2-1.1,3-.5.8.5,1,.7.8,2-.3,1.3-.8,3.4-.8,4.8s1.7,1.2,2.9,1.3c2.5.2,2.9,3,2.7,4.6s-1,4.9-1,7,.1,4.2.3,5.3c.2,1.1.6,2.4.5,3.9-.1,2-1.3,2.3-2.6,1-1.2-1.2-18.8-19.9-18.8-19.9-1.2,3.8,3.7,10.3,5.2,12.3,1.6,2,1.5,3.5,0,4.8-1.3,1.3-4,2.1-4.5,3.3-.5,1.2,1.2,5,4.9,9.8,3.7,4.7-4.2,7.9-8.9,8.8-4.7.9-4.7-2.3-4.4-4.1.3-1.8.3-2.8.2-4.4,0-1.6-1.5-3.8-3.6-6.4-2-2.6-2-5-1.2-11.1.8-6.1.6-10,.6-10,0,0-2.1,0-5.1,0-3-.1-5.5-1.9-5.8-9.2-.2-7.3-.4-24.8-.9-26.7-.5-1.8-2.4-2.1-3.3-2.4-.9-.2-.9-1.5,0-1.9,2.2-1.1,4.8-3.8,3.8-5.4-1-1.7-4.8-1.3-7.4,0-2.6,1.2-5.3,4-6,4.8-.7.7-1.3.7-1.2,0,0-.9-.5-4.9-.8-6.2-.4-1.4-1.6-4-2-4.7-.4-.7,0-1,.7-.7.7.3,2.2.9,3.7,1.3,1.5.4,2.9-.3,3.6-1.6.7-1.4,2.1-4.4,2.8-5.8.7-1.3,1.8-1,2.7-.8.9.2,1.7.8,2.6,1.1.8.4,1.5.3,1.8-.1.3-.4.6-.6,1.1-1.6.5-1,1.1-.6,1.2-.1,2.5,15,9,15.7,9,15.7-1,2.5-3.3,6.5-3.8,7.5-.6.9-.8,2.3-1,3.3-.1,1,.4,11,1.1,14.6.7,3.6,2.9,2.2,3.7,1.1.7-1.1,2.9-5.7,2.9-5.7,0,0,.5-1.3.5-2.3s-1.8-3.3-2.2-4c-.4-.7-2-2.1-2-5.6s3.1-5.9,4.3-6.8c1.1-.9,1.1-2.2,1-3-.5-2.7-3.4-8.4-4.7-10.6-1.4-2.2-4.1-6.3-4.1-6.3h5.7L34.1,0l4,7.6h4.1s0,0,0,0ZM41.3,30.6c1.8-3,2.6-6.2,2.6-6.2h-5.3s.9,3.2,2.7,6.2M35.8,15.2c.2,1.6,1.4,2.2,2.3,1.7.9-.5.7-1.8,0-2.8-.6-1-1.9-2.1-2.3-1.9-.4.2-.2,2.1,0,3M46.4,12.2c-.4-.2-1.8.9-2.4,1.9-.6,1-.8,2.3,0,2.8.9.5,2-.1,2.3-1.7.2-.9.5-2.8,0-3"/>
+            </svg>
+            <span>Semeex OBS</span>
+          </button>
+          <button onclick="clearQueue()" class="quick-action-btn" aria-label="Clear all messages">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            <span>Clear All</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="broadcast-grid">
+      <!-- Message Queue -->
+      <div class="control-panel">
+        <div class="panel-header">
+          <div class="panel-title">Message Queue</div>
+          <div class="panel-badge"><span id="queueCount">0</span> MSG</div>
+        </div>
+        <div id="messageQueue" class="h-[480px] overflow-y-auto p-3">
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <div class="font-display text-sm tracking-wider">NO MESSAGES YET</div>
+            <div class="text-xs mt-1">Connect to a livestream or add manually</div>
           </div>
         </div>
       </div>
 
       <!-- Superchat Queue -->
-      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden border-l-4 border-yellow-500">
-        <div class="flex items-center justify-between p-4 border-b border-gray-800">
-          <h2 class="font-semibold flex items-center gap-2">
-            <span class="text-yellow-500">💰</span> Superchats
-          </h2>
-          <span class="text-gray-500 text-sm"><span id="superchatCount">0</span> superchats</span>
+      <div class="control-panel" style="border-left: 3px solid var(--semeex-gold);">
+        <div class="panel-header">
+          <div class="panel-title" style="color: var(--semeex-gold);">
+            <span style="margin-right: 4px;">💰</span> Superchats
+          </div>
+          <div class="panel-badge" style="border-color: var(--semeex-gold); color: var(--semeex-gold);"><span id="superchatCount">0</span> SC</div>
         </div>
-        <div id="superchatQueue" class="h-[300px] overflow-y-auto p-2">
-          <div class="text-gray-500 text-center py-8">
-            No superchats yet.
+        <div id="superchatQueue" class="h-[480px] overflow-y-auto p-3">
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--semeex-gold);">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="font-display text-sm tracking-wider">NO SUPERCHATS</div>
+            <div class="text-xs mt-1">Waiting for donations...</div>
           </div>
         </div>
       </div>
 
       <!-- Pinned Display -->
-      <div class="bg-[#1a1a1a] rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-gray-800">
-          <h2 class="font-semibold">Pinned Display</h2>
-          <button onclick="unpinMessage()" id="clearPinBtn" class="text-gray-500 hover:text-red-500 text-sm transition hidden">
-            Clear Pin
+      <div class="control-panel">
+        <div class="panel-header">
+          <div class="panel-title">Pinned Display</div>
+          <button onclick="unpinMessage()" id="clearPinBtn" class="btn btn-small btn-secondary hidden">
+            Clear
           </button>
         </div>
-        <div id="pinnedPreview" class="p-4 min-h-[200px] flex items-center justify-center">
-          <div class="text-gray-500 text-center">
-            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="pinnedPreview" class="pinned-preview-container">
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
             </svg>
-            Click on a message to pin it
+            <div class="font-display text-sm tracking-wider">SELECT A MESSAGE</div>
+            <div class="text-xs mt-1">Click any message to pin it</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Manual Add Section -->
-    <div class="bg-[#1a1a1a] rounded-xl p-4 mt-4">
-      <h3 class="font-semibold mb-3">Add Message Manually</h3>
-      <div class="flex gap-3 flex-wrap">
-        <input
-          type="text"
-          id="manualAuthor"
-          placeholder="@username"
-          class="w-40 bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
-        >
-        <input
-          type="text"
-          id="manualMessage"
-          placeholder="Message text..."
-          class="flex-1 min-w-[200px] bg-[#0f0f0f] border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
-        >
-        <div class="flex items-center gap-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="isSuperchat" class="w-4 h-4 rounded">
-            <span class="text-sm">Superchat</span>
-          </label>
-          <input
-            type="number"
-            id="superchatAmount"
-            placeholder="$5.00"
-            step="0.01"
-            min="1"
-            class="w-24 bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-red-500 hidden"
-          >
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('manualAddContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="manualAddContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('manualAddContent', this);}">
+        <div class="panel-title">Add Message Manually</div>
+        <div class="accordion-toggle collapsed" aria-hidden="true">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
         </div>
-        <button onclick="addManualMessage()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
-          + Add
-        </button>
+      </div>
+      <div id="manualAddContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-3 flex-wrap items-end">
+          <div class="flex-shrink-0">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">USERNAME</label>
+            <input
+              type="text"
+              id="manualAuthor"
+              name="manualAuthor"
+              placeholder="@username"
+              class="broadcast-input w-40"
+            >
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">MESSAGE</label>
+            <input
+              type="text"
+              id="manualMessage"
+              name="manualMessage"
+              placeholder="Enter message text…"
+              class="broadcast-input w-full"
+            >
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="isSuperchat" name="isSuperchat">
+              <span class="text-sm">Superchat</span>
+            </label>
+            <input
+              type="number"
+              id="superchatAmount"
+              name="superchatAmount"
+              placeholder="$5.00"
+              step="0.01"
+              min="1"
+              class="broadcast-input w-24 hidden"
+            >
+            <button onclick="addManualMessage()" class="btn btn-gold">
+              + Add
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Ticker Settings -->
-    <div class="bg-[#1a1a1a] rounded-xl p-4 mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold">Ticker Settings</h3>
-        <div class="flex items-center gap-2">
-          <button onclick="openTicker()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-medium transition">
-            Open Ticker
-          </button>
-          <button onclick="openChatOBS()" class="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-medium transition">
-            Open Chat OBS
-          </button>
-        </div>
-      </div>
-
-      <!-- Style Selection -->
-      <div class="flex gap-3 flex-wrap items-center mb-4 pb-4 border-b border-gray-800">
-        <label class="text-sm text-gray-400">Style:</label>
-        <select id="tickerStyle" class="bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-red-500">
-          <option value="tape">Ripped Paper / Tape</option>
-          <option value="sports">Sports Broadcast</option>
-        </select>
-        <label class="flex items-center gap-2 ml-4 cursor-pointer">
-          <input type="checkbox" id="showTicker" checked class="w-4 h-4 rounded">
-          <span class="text-sm">Show Ticker</span>
-        </label>
-      </div>
-
-      <!-- Sports Style Settings (hidden by default) -->
-      <div id="sportsTickerSettings" class="mb-4 pb-4 border-b border-gray-800 hidden">
-        <h4 class="text-sm font-medium text-gray-300 mb-3">Sports Ticker Branding</h4>
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Brand Name</label>
-            <input type="text" id="sportsBrand" value="SEMEEX" placeholder="SEMEEX" class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Category</label>
-            <input type="text" id="sportsCategory" value="FOOTBALL" placeholder="FOOTBALL" class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
-          </div>
-          <div>
-            <label class="block text-xs text-gray-500 mb-1">Logo URL (optional)</label>
-            <input type="text" id="sportsLogoUrl" value="" placeholder="https://..." class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500">
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('tickerSettingsContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="tickerSettingsContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('tickerSettingsContent', this);}">
+        <div class="panel-title">Ticker Settings</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge"><span id="tickerItemCount">0</span> ITEMS</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
           </div>
         </div>
-        <p class="text-xs text-gray-600 mt-2">For sports style, items will show as: [Brand] [Category] <span class="text-yellow-500 font-bold">TITLE</span> | Content</p>
       </div>
-
-      <div class="flex gap-3 flex-wrap items-center mb-4">
-        <label class="text-sm text-gray-400">Speed:</label>
-        <input
-          type="range"
-          id="tickerSpeed"
-          min="30"
-          max="200"
-          value="100"
-          class="w-32"
-        >
-        <span id="tickerSpeedValue" class="text-sm">100px/s</span>
-      </div>
-
-      <!-- Ticker Items Management -->
-      <div class="border-t border-gray-800 pt-4 mt-4">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="text-sm font-medium text-gray-300">Ticker Items</h4>
-          <span class="text-xs text-gray-500"><span id="tickerItemCount">0</span> items</span>
+      <div id="tickerSettingsContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <!-- Style Selection -->
+        <div class="flex gap-4 flex-wrap items-center mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">STYLE</label>
+            <select id="tickerStyle" name="tickerStyle">
+              <option value="sports">Sports Broadcast</option>
+              <option value="standard">Standard Broadcast</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">SPEED</label>
+            <div class="flex items-center gap-2">
+              <input type="range" id="tickerSpeed" name="tickerSpeed" min="30" max="200" value="100" style="width: 120px;">
+              <span id="tickerSpeedValue" class="font-mono text-sm" style="min-width: 60px;">100px/s</span>
+            </div>
+          </div>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer mt-4">
+              <input type="checkbox" id="showTicker" name="showTicker" checked>
+              <span class="text-sm">Show Ticker</span>
+            </label>
+          </div>
         </div>
 
         <!-- Ticker Items List -->
-        <div id="tickerItemsList" class="space-y-2 mb-4 max-h-[200px] overflow-y-auto">
-          <div class="text-gray-500 text-sm text-center py-4">
-            No ticker items. Add items below.
+        <div id="tickerItemsList" class="mb-4 max-h-[200px] overflow-y-auto">
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO TICKER ITEMS</div>
+            <div class="text-xs mt-1">Add items below</div>
           </div>
         </div>
 
         <!-- Add Ticker Item -->
-        <div class="flex gap-2 flex-wrap">
-          <input
-            type="text"
-            id="tickerItemTitle"
-            placeholder="Title (e.g., BREAKING)"
-            class="w-32 bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
-          >
-          <input
-            type="text"
-            id="tickerItemContent"
-            placeholder="Content text..."
-            class="flex-1 min-w-[200px] bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
-          >
-          <button onclick="addTickerItem()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition">
+        <div class="flex gap-2 flex-wrap items-end">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">TITLE</label>
+            <input
+              type="text"
+              id="tickerItemTitle"
+              name="tickerItemTitle"
+              placeholder="BREAKING"
+              class="broadcast-input w-32"
+            >
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">CONTENT</label>
+            <input
+              type="text"
+              id="tickerItemContent"
+              name="tickerItemContent"
+              placeholder="Content text…"
+              class="broadcast-input w-full"
+            >
+          </div>
+          <button onclick="addTickerItem()" class="btn btn-primary btn-small">
             + Add Item
           </button>
         </div>
 
-        <!-- Bulk Ticker Input -->
-        <div class="border-t border-gray-800 pt-4 mt-4">
+        <!-- Quick News Import -->
+        <div class="section-divider"></div>
+        <div>
           <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-medium text-gray-300">Bulk Import (paste ticker string)</h4>
-            <span class="text-xs text-gray-500">Format: TITLE :: content | TITLE :: content</span>
+            <div class="font-display text-sm tracking-wider">QUICK NEWS IMPORT</div>
+            <span class="font-mono text-xs text-gray-500">Pre-configured news topics</span>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="loadManUtdNews()" class="btn btn-small" style="background: linear-gradient(135deg, #da020e 0%, #a00008 100%); border-color: #da020e;">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 79.4 106.1" style="display: inline-block; vertical-align: middle;">
+                <path d="M64.6,45.7v-4.3s-1.1-1.8-4-1.8-4.5.8-4.5,1.6c0,1.2,2.5,4.5,8.5,4.5M42.3,7.6L46.5.2l3.3,7.5h5.5c-3.3,3.1-4.7,7.9-4.7,11v3.5c0,1.5-.7,3.9-.7,3.9,0,0,4.8,3.7,5.6,4.3.3.2.7.4.4,1-.4,1.1-3.7,2.5-4,2.8-.7.7-.9,1-.7,1.7.2.6.8.7,2.1.3,1.3-.4,3.9-1.8,6.1-2.7,2.2-1,5.1-.7,5.1-.7v-4.2h-8.3v-13.4l-1.5-2.4,3.7-6.5,3.7,6.6-1.5,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.4,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.5,2.3v13.4c0,0-8.3,0-8.3,0v6.2c1.9,1.8,3.7,5.8,3.7,8.2s-1.6,3.5-1.6,3.5c.5,1.9.4,2.7.2,4.4-.2,1.8-2.4,4.5-2.4,4.5v32c0,2.2-5,2-5,0v-31.4c-2.8-3.1-10.6-5.6-10.6-5.6-2.8,2.8-4.6,7.8-4.6,7.8,1.2.9,3.2,0,3.9-.8.7-.8,2.2-1.1,3-.5.8.5,1,.7.8,2-.3,1.3-.8,3.4-.8,4.8s1.7,1.2,2.9,1.3c2.5.2,2.9,3,2.7,4.6s-1,4.9-1,7,.1,4.2.3,5.3c.2,1.1.6,2.4.5,3.9-.1,2-1.3,2.3-2.6,1-1.2-1.2-18.8-19.9-18.8-19.9-1.2,3.8,3.7,10.3,5.2,12.3,1.6,2,1.5,3.5,0,4.8-1.3,1.3-4,2.1-4.5,3.3-.5,1.2,1.2,5,4.9,9.8,3.7,4.7-4.2,7.9-8.9,8.8-4.7.9-4.7-2.3-4.4-4.1.3-1.8.3-2.8.2-4.4,0-1.6-1.5-3.8-3.6-6.4-2-2.6-2-5-1.2-11.1.8-6.1.6-10,.6-10,0,0-2.1,0-5.1,0-3-.1-5.5-1.9-5.8-9.2-.2-7.3-.4-24.8-.9-26.7-.5-1.8-2.4-2.1-3.3-2.4-.9-.2-.9-1.5,0-1.9,2.2-1.1,4.8-3.8,3.8-5.4-1-1.7-4.8-1.3-7.4,0-2.6,1.2-5.3,4-6,4.8-.7.7-1.3.7-1.2,0,0-.9-.5-4.9-.8-6.2-.4-1.4-1.6-4-2-4.7-.4-.7,0-1,.7-.7.7.3,2.2.9,3.7,1.3,1.5.4,2.9-.3,3.6-1.6.7-1.4,2.1-4.4,2.8-5.8.7-1.3,1.8-1,2.7-.8.9.2,1.7.8,2.6,1.1.8.4,1.5.3,1.8-.1.3-.4.6-.6,1.1-1.6.5-1,1.1-.6,1.2-.1,2.5,15,9,15.7,9,15.7-1,2.5-3.3,6.5-3.8,7.5-.6.9-.8,2.3-1,3.3-.1,1,.4,11,1.1,14.6.7,3.6,2.9,2.2,3.7,1.1.7-1.1,2.9-5.7,2.9-5.7,0,0,.5-1.3.5-2.3s-1.8-3.3-2.2-4c-.4-.7-2-2.1-2-5.6s3.1-5.9,4.3-6.8c1.1-.9,1.1-2.2,1-3-.5-2.7-3.4-8.4-4.7-10.6-1.4-2.2-4.1-6.3-4.1-6.3h5.7L34.1,0l4,7.6h4.1s0,0,0,0ZM41.3,30.6c1.8-3,2.6-6.2,2.6-6.2h-5.3s.9,3.2,2.7,6.2M35.8,15.2c.2,1.6,1.4,2.2,2.3,1.7.9-.5.7-1.8,0-2.8-.6-1-1.9-2.1-2.3-1.9-.4.2-.2,2.1,0,3M46.4,12.2c-.4-.2-1.8.9-2.4,1.9-.6,1-.8,2.3,0,2.8.9.5,2-.1,2.3-1.7.2-.9.5-2.8,0-3"/>
+              </svg>
+              Man United News
+            </button>
+            <span id="newsLastUpdated" class="font-mono text-xs text-gray-500 self-center ml-2" style="display: none;"></span>
+          </div>
+        </div>
+
+        <!-- Bulk Import -->
+        <div class="section-divider"></div>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-display text-sm tracking-wider">BULK IMPORT</div>
+            <span class="font-mono text-xs text-gray-500">FORMAT: TITLE :: content | TITLE :: content</span>
           </div>
           <textarea
             id="bulkTickerInput"
+            name="bulkTickerInput"
             rows="3"
-            placeholder="Paste your ticker string here... Items separated by | and title/content by ::"
-            class="w-full bg-[#0f0f0f] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 resize-none"
+            placeholder="Paste your ticker string here…"
+            class="broadcast-input w-full resize-none"
+            style="font-family: 'JetBrains Mono', monospace;"
           ></textarea>
           <div class="flex gap-2 mt-2">
-            <button onclick="parseBulkTicker()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition">
-              Parse & Add Items
+            <button onclick="parseBulkTicker()" class="btn btn-secondary btn-small">
+              Parse & Add
             </button>
-            <button onclick="parseBulkTicker(true)" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-sm font-semibold transition">
-              Replace All Items
+            <button onclick="parseBulkTicker(true)" class="btn btn-secondary btn-small" style="border-color: var(--semeex-gold); color: var(--semeex-gold);">
+              Replace All
+            </button>
+            <button onclick="clearAllTickers()" class="btn btn-secondary btn-small" style="border-color: #ef4444; color: #ef4444;">
+              Clear All
             </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
     // ========================================================================
@@ -304,7 +1144,7 @@
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
     let tickerItems = [];
-    let tickerStyle = 'tape';
+    let tickerStyle = 'sports';
     let sportsTicker = { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '/uploads/SemeexLogo.png' };
 
     // ========================================================================
@@ -335,7 +1175,6 @@
         console.log('[WebSocket] Disconnected');
         updateStatus('disconnected');
 
-        // Attempt to reconnect
         if (reconnectAttempts < maxReconnectAttempts) {
           reconnectAttempts++;
           setTimeout(connectWebSocket, 2000 * reconnectAttempts);
@@ -351,13 +1190,21 @@
       console.log('[WebSocket] Received:', data.type);
 
       switch (data.type) {
+        case 'batch':
+          if (data.messages && Array.isArray(data.messages)) {
+            for (const msg of data.messages) {
+              handleMessage(msg);
+            }
+          }
+          break;
+
         case 'init':
           queue = data.data.queue || [];
           pinnedMessage = data.data.pinnedMessage;
           isConnected = data.data.isConnected;
           videoId = data.data.videoId;
           tickerItems = data.data.tickerItems || [];
-          tickerStyle = data.data.tickerStyle || 'tape';
+          tickerStyle = data.data.tickerStyle || 'standard';
           sportsTicker = data.data.sportsTicker || { brand: 'SEMEEX', category: 'FOOTBALL', logoUrl: '' };
           updateUI();
           renderTickerItems();
@@ -376,18 +1223,16 @@
           break;
 
         case 'message':
-          // Already added via queue_update
           break;
 
         case 'superchat':
-          // Play sound or show notification for superchat
           playSuperchatSound();
           break;
 
         case 'pin':
           pinnedMessage = data.data.message;
           renderPinnedPreview();
-          renderQueue(); // Update pinned status in queue
+          renderQueue();
           break;
 
         case 'ticker_update':
@@ -436,15 +1281,23 @@
     function updateStatus(status) {
       const dot = document.getElementById('statusDot');
       const text = document.getElementById('statusText');
+      const liveBadge = document.getElementById('liveBadge');
 
       dot.className = 'status-dot ' + status;
 
       if (status === 'connected') {
-        text.textContent = 'Connected to YouTube';
+        text.textContent = 'CONNECTED';
+        liveBadge.classList.remove('hidden');
       } else if (status === 'connecting') {
-        text.textContent = 'Connecting...';
+        text.textContent = 'CONNECTING...';
+        liveBadge.classList.add('hidden');
       } else {
-        text.textContent = isConnected ? 'Connected' : 'Disconnected';
+        text.textContent = isConnected ? 'CONNECTED' : 'DISCONNECTED';
+        if (isConnected) {
+          liveBadge.classList.remove('hidden');
+        } else {
+          liveBadge.classList.add('hidden');
+        }
       }
     }
 
@@ -457,13 +1310,13 @@
       if (isConnected) {
         connectBtn.classList.add('hidden');
         disconnectBtn.classList.remove('hidden');
-        videoInfo.classList.remove('hidden');
+        videoInfo.style.display = 'block';
         videoIdDisplay.textContent = videoId;
         updateStatus('connected');
       } else {
         connectBtn.classList.remove('hidden');
         disconnectBtn.classList.add('hidden');
-        videoInfo.classList.add('hidden');
+        videoInfo.style.display = 'none';
         updateStatus('disconnected');
       }
     }
@@ -472,42 +1325,45 @@
       const container = document.getElementById('messageQueue');
       const countEl = document.getElementById('queueCount');
 
-      // Filter out superchats for the regular queue
       const regularMessages = queue.filter(msg => !msg.isSuperchat);
       countEl.textContent = regularMessages.length;
 
       if (regularMessages.length === 0) {
         container.innerHTML = `
-          <div class="text-gray-500 text-center py-8">
-            No messages yet. Connect to a YouTube live stream or add messages manually.
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-3 opacity-30">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <div class="font-display text-sm tracking-wider">NO MESSAGES YET</div>
+            <div class="text-xs mt-1">Connect to a livestream or add manually</div>
           </div>
         `;
       } else {
-        // Reverse to show newest at top
         const reversed = [...regularMessages].reverse();
         container.innerHTML = reversed.map(msg => {
           const isPinned = pinnedMessage && pinnedMessage.id === msg.id;
 
           return `
-            <div class="message-item p-3 rounded-lg mb-2 cursor-pointer transition ${isPinned ? 'pinned' : ''}"
+            <div class="message-item ${isPinned ? 'pinned' : ''}"
                  onclick="pinMessage('${msg.id}')">
               <div class="flex items-start gap-3">
                 <div class="flex-shrink-0">
                   ${msg.authorPhoto
-                    ? `<img src="${msg.authorPhoto}" class="w-8 h-8 rounded-full" alt="">`
-                    : `<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">${msg.author[0]?.toUpperCase() || '?'}</div>`
+                    ? `<img src="${msg.authorPhoto}" class="w-10 h-10 rounded-full" alt="" style="border: 2px solid var(--border-color);">`
+                    : `<div class="w-10 h-10 flex items-center justify-center font-display text-xl" style="background: var(--surface-light); border: 2px solid var(--border-color);">${msg.author[0]?.toUpperCase() || '?'}</div>`
                   }
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold text-sm">${escapeHtml(msg.author)}</span>
-                    ${msg.badges?.includes('member') ? '<span class="text-xs bg-green-600 px-1.5 rounded">Member</span>' : ''}
-                    ${msg.badges?.includes('moderator') ? '<span class="text-xs bg-blue-600 px-1.5 rounded">Mod</span>' : ''}
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-display text-2xl tracking-wide" style="color: var(--semeex-gold);">${escapeHtml(msg.author)}</span>
+                    ${msg.badges?.includes('member') ? '<span class="author-badge member">Member</span>' : ''}
+                    ${msg.badges?.includes('moderator') ? '<span class="author-badge mod">Mod</span>' : ''}
+                    ${msg.badges?.includes('owner') ? '<span class="author-badge owner">Owner</span>' : ''}
                   </div>
-                  <p class="text-sm text-gray-300 break-words">${escapeHtml(msg.message)}</p>
+                  <p class="text-2xl mt-2" style="color: var(--text-muted); font-family: 'Oswald', sans-serif;">${escapeHtml(msg.message)}</p>
                 </div>
                 <button class="pin-btn flex-shrink-0 p-1 hover:bg-white/10 rounded transition" onclick="event.stopPropagation(); pinMessage('${msg.id}')">
-                  <svg class="w-5 h-5 ${isPinned ? 'text-red-500' : 'text-gray-500'}" fill="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style="color: ${isPinned ? 'var(--semeex-gold)' : 'var(--text-muted)'};">
                     <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                   </svg>
                 </button>
@@ -516,11 +1372,9 @@
           `;
         }).join('');
 
-        // Auto-scroll to top (newest messages)
         container.scrollTop = 0;
       }
 
-      // Also render superchats
       renderSuperchatQueue();
     }
 
@@ -528,44 +1382,46 @@
       const container = document.getElementById('superchatQueue');
       const countEl = document.getElementById('superchatCount');
 
-      // Filter for superchats only
       const superchats = queue.filter(msg => msg.isSuperchat);
       countEl.textContent = superchats.length;
 
       if (superchats.length === 0) {
         container.innerHTML = `
-          <div class="text-gray-500 text-center py-8">
-            No superchats yet.
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-3 opacity-30" style="color: var(--semeex-gold);">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="font-display text-sm tracking-wider">NO SUPERCHATS</div>
+            <div class="text-xs mt-1">Waiting for donations...</div>
           </div>
         `;
         return;
       }
 
-      // Reverse to show newest at top
       const reversed = [...superchats].reverse();
       container.innerHTML = reversed.map(msg => {
         const isPinned = pinnedMessage && pinnedMessage.id === msg.id;
         const tierClass = `tier-${msg.tier?.tier || 1}`;
 
         return `
-          <div class="message-item p-3 rounded-lg mb-2 cursor-pointer transition ${isPinned ? 'pinned' : ''} ${tierClass}"
-               onclick="pinMessage('${msg.id}')">
+          <div class="message-item ${isPinned ? 'pinned' : ''} ${tierClass}"
+               onclick="pinMessage('${msg.id}')" style="border-left-width: 3px;">
             <div class="flex items-start gap-3">
               <div class="flex-shrink-0">
                 ${msg.authorPhoto
-                  ? `<img src="${msg.authorPhoto}" class="w-8 h-8 rounded-full" alt="">`
-                  : `<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">${msg.author[0]?.toUpperCase() || '?'}</div>`
+                  ? `<img src="${msg.authorPhoto}" class="w-10 h-10 rounded-full" alt="" style="border: 2px solid rgba(255,255,255,0.3);">`
+                  : `<div class="w-10 h-10 flex items-center justify-center font-display text-xl" style="background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.3);">${msg.author[0]?.toUpperCase() || '?'}</div>`
                 }
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-sm text-white">${escapeHtml(msg.author)}</span>
-                  <span class="text-xs font-bold text-white">${msg.amountFormatted}</span>
+                  <span class="font-display text-2xl tracking-wide text-white">${escapeHtml(msg.author)}</span>
+                  <span class="font-mono text-xl font-bold text-white">${msg.amountFormatted}</span>
                 </div>
-                <p class="text-sm text-white break-words">${escapeHtml(msg.message)}</p>
+                <p class="text-2xl text-white mt-2" style="font-family: 'Oswald', sans-serif;">${escapeHtml(msg.message)}</p>
               </div>
               <button class="pin-btn flex-shrink-0 p-1 hover:bg-white/10 rounded transition" onclick="event.stopPropagation(); pinMessage('${msg.id}')">
-                <svg class="w-5 h-5 ${isPinned ? 'text-red-500' : 'text-white'}" fill="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style="color: ${isPinned ? 'var(--semeex-gold)' : 'white'};">
                   <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                 </svg>
               </button>
@@ -574,7 +1430,6 @@
         `;
       }).join('');
 
-      // Auto-scroll to top (newest superchats)
       container.scrollTop = 0;
     }
 
@@ -585,32 +1440,33 @@
       if (!pinnedMessage) {
         clearBtn.classList.add('hidden');
         container.innerHTML = `
-          <div class="text-gray-500 text-center">
-            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="pinned-preview-empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-3 opacity-30">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
             </svg>
-            Click on a message to pin it
+            <div class="font-display text-sm tracking-wider">SELECT A MESSAGE</div>
+            <div class="text-xs mt-1">Click any message to pin it</div>
           </div>
         `;
         return;
       }
 
       clearBtn.classList.remove('hidden');
-      const tierClass = pinnedMessage.isSuperchat ? `tier-${pinnedMessage.tier?.tier || 1}` : 'bg-[#0f0f0f]';
+      const tierClass = pinnedMessage.isSuperchat ? `tier-${pinnedMessage.tier?.tier || 1}` : '';
 
       container.innerHTML = `
-        <div class="w-full ${tierClass} rounded-xl p-4">
+        <div class="w-full ${tierClass} p-4 animate-in" style="background: ${pinnedMessage.isSuperchat ? '' : 'var(--surface-dark)'}; border: 1px solid var(--border-color);">
           <div class="flex items-center gap-3 mb-3">
             ${pinnedMessage.authorPhoto
-              ? `<img src="${pinnedMessage.authorPhoto}" class="w-10 h-10 rounded-full" alt="">`
-              : `<div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-lg font-bold">${pinnedMessage.author[0]?.toUpperCase() || '?'}</div>`
+              ? `<img src="${pinnedMessage.authorPhoto}" class="w-12 h-12 rounded-full" alt="" style="border: 2px solid var(--semeex-gold);">`
+              : `<div class="w-12 h-12 flex items-center justify-center font-display text-xl" style="background: var(--surface-light); border: 2px solid var(--semeex-gold);">${pinnedMessage.author[0]?.toUpperCase() || '?'}</div>`
             }
             <div>
-              <div class="font-bold">${escapeHtml(pinnedMessage.author)}</div>
-              ${pinnedMessage.isSuperchat ? `<div class="text-sm font-semibold">${pinnedMessage.amountFormatted}</div>` : ''}
+              <div class="font-display text-lg tracking-wide" style="color: var(--semeex-gold);">${escapeHtml(pinnedMessage.author)}</div>
+              ${pinnedMessage.isSuperchat ? `<div class="font-mono text-sm font-bold">${pinnedMessage.amountFormatted}</div>` : ''}
             </div>
           </div>
-          <p class="text-lg leading-relaxed">"${escapeHtml(pinnedMessage.message)}"</p>
+          <p class="text-lg leading-relaxed" style="font-family: 'Oswald', sans-serif;">"${escapeHtml(pinnedMessage.message)}"</p>
         </div>
       `;
     }
@@ -632,7 +1488,6 @@
     }
 
     function pinMessage(messageId) {
-      // Toggle: if clicking the already-pinned message, unpin it
       if (pinnedMessage && pinnedMessage.id === messageId) {
         send('unpin');
       } else {
@@ -656,8 +1511,6 @@
       }
 
       send('add_to_queue', { author, message, isSuperchat, amount });
-
-      // Clear inputs
       document.getElementById('manualMessage').value = '';
     }
 
@@ -675,6 +1528,10 @@
       window.open('/youtube_chat_obs.html', 'chatobs', 'width=600,height=300');
     }
 
+    function openSemeexChatOBS() {
+      window.open('/youtube_chat_obs_semeex.html', 'semeexchatobs', 'width=800,height=200');
+    }
+
     // ========================================================================
     // Ticker Items Management
     // ========================================================================
@@ -686,33 +1543,30 @@
 
       if (tickerItems.length === 0) {
         container.innerHTML = `
-          <div class="text-gray-500 text-sm text-center py-4">
-            No ticker items. Add items below.
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO TICKER ITEMS</div>
+            <div class="text-xs mt-1">Add items below</div>
           </div>
         `;
         return;
       }
 
       container.innerHTML = tickerItems.map((item, index) => `
-        <div class="flex items-center gap-2 p-2 bg-[#0f0f0f] rounded-lg group">
-          <div class="flex-shrink-0 px-2 py-1 bg-red-600 rounded text-xs font-bold uppercase">
-            ${escapeHtml(item.title || 'NEWS')}
-          </div>
-          <div class="flex-1 text-sm text-gray-300 truncate">
-            ${escapeHtml(item.content || '')}
-          </div>
-          <div class="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-            <button onclick="moveTickerItem(${index}, -1)" class="p-1 hover:bg-white/10 rounded" title="Move up">
+        <div class="ticker-item">
+          <div class="ticker-item-title">${escapeHtml(item.title || 'NEWS')}</div>
+          <div class="ticker-item-content">${escapeHtml(item.content || '')}</div>
+          <div class="ticker-item-actions">
+            <button onclick="moveTickerItem(${index}, -1)" title="Move up">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
               </svg>
             </button>
-            <button onclick="moveTickerItem(${index}, 1)" class="p-1 hover:bg-white/10 rounded" title="Move down">
+            <button onclick="moveTickerItem(${index}, 1)" title="Move down">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
             </button>
-            <button onclick="removeTickerItem(${index})" class="p-1 hover:bg-red-500/20 rounded text-red-500" title="Remove">
+            <button onclick="removeTickerItem(${index})" title="Remove" style="color: var(--semeex-red);">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -735,7 +1589,6 @@
       send('update_ticker', { items: tickerItems });
       renderTickerItems();
 
-      // Clear inputs
       document.getElementById('tickerItemTitle').value = '';
       document.getElementById('tickerItemContent').value = '';
     }
@@ -756,6 +1609,12 @@
       renderTickerItems();
     }
 
+    function clearAllTickers() {
+      tickerItems = [];
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+    }
+
     function parseBulkTicker(replaceAll = false) {
       const input = document.getElementById('bulkTickerInput').value.trim();
       if (!input) {
@@ -763,7 +1622,6 @@
         return;
       }
 
-      // Split by | to get individual items
       const segments = input.split('|').map(s => s.trim()).filter(s => s);
 
       if (segments.length === 0) {
@@ -774,36 +1632,28 @@
       const newItems = [];
 
       for (const segment of segments) {
-        // Try to split by :: to get title and content
         if (segment.includes('::')) {
           const parts = segment.split('::').map(p => p.trim());
           if (parts.length >= 2) {
-            // First part is title - remove ALL emojis and variation selectors
             let title = parts[0]
-              .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')  // Most emojis
-              .replace(/[\u{2600}-\u{26FF}]/gu, '')    // Misc symbols
-              .replace(/[\u{2700}-\u{27BF}]/gu, '')    // Dingbats
-              .replace(/[\u{FE00}-\u{FE0F}]/gu, '')    // Variation selectors
-              .replace(/[\u{1F000}-\u{1F02F}]/gu, '')  // Mahjong
-              .replace(/[\u{1F0A0}-\u{1F0FF}]/gu, '')  // Playing cards
-              .replace(/[\u{1F100}-\u{1F1FF}]/gu, '')  // Enclosed alphanumerics
-              .replace(/[\u{1F200}-\u{1F2FF}]/gu, '')  // Enclosed ideographic
-              .replace(/[\u{E0000}-\u{E007F}]/gu, '')  // Tags
+              .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+              .replace(/[\u{2600}-\u{26FF}]/gu, '')
+              .replace(/[\u{2700}-\u{27BF}]/gu, '')
+              .replace(/[\u{FE00}-\u{FE0F}]/gu, '')
+              .replace(/[\u{1F000}-\u{1F02F}]/gu, '')
+              .replace(/[\u{1F0A0}-\u{1F0FF}]/gu, '')
+              .replace(/[\u{1F100}-\u{1F1FF}]/gu, '')
+              .replace(/[\u{1F200}-\u{1F2FF}]/gu, '')
+              .replace(/[\u{E0000}-\u{E007F}]/gu, '')
               .trim();
 
-            // If title is empty after removing emojis, use a default
             if (!title) title = 'NEWS';
-
-            // Keep full title text (uppercase)
             title = title.toUpperCase();
 
-            // Rest is content (keep emojis)
             const content = parts.slice(1).join('::').trim();
-
             newItems.push({ title, content });
           }
         } else {
-          // No :: separator, use NEWS as default title
           newItems.push({ title: 'NEWS', content: segment });
         }
       }
@@ -813,7 +1663,6 @@
         return;
       }
 
-      // Either replace all or append
       if (replaceAll) {
         tickerItems = newItems;
       } else {
@@ -822,27 +1671,85 @@
 
       send('update_ticker', { items: tickerItems });
       renderTickerItems();
-
-      // Clear the textarea
       document.getElementById('bulkTickerInput').value = '';
-
-      // Show success message
       console.log(`[Ticker] Parsed ${newItems.length} items`);
+    }
+
+    // Load Manchester United news into ticker
+    // Load Manchester United news from live sources (Google News, Sky Sports, FotMob)
+    async function loadManUtdNews() {
+      const btn = event?.target?.closest('button');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-pulse">Fetching news...</span>';
+      }
+
+      try {
+        console.log('[Ticker] Fetching live Man United news...');
+        const response = await fetch('/api/news/manutd');
+        const data = await response.json();
+
+        if (data.success && data.items && data.items.length > 0) {
+          tickerItems = data.items;
+          send('update_ticker', { items: tickerItems });
+          renderTickerItems();
+          console.log(`[Ticker] Loaded ${data.items.length} live news items`);
+
+          // Show last updated timestamp
+          const lastUpdatedEl = document.getElementById('newsLastUpdated');
+          if (lastUpdatedEl && data.timestamp) {
+            const time = new Date(data.timestamp);
+            lastUpdatedEl.textContent = `Updated: ${time.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+            lastUpdatedEl.style.display = 'inline';
+          }
+        } else {
+          loadFallbackNews();
+        }
+      } catch (error) {
+        console.error('[Ticker] Error fetching news:', error);
+        loadFallbackNews();
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 79.4 106.1" style="display: inline-block; vertical-align: middle;"><path d="M64.6,45.7v-4.3s-1.1-1.8-4-1.8-4.5.8-4.5,1.6c0,1.2,2.5,4.5,8.5,4.5M42.3,7.6L46.5.2l3.3,7.5h5.5c-3.3,3.1-4.7,7.9-4.7,11v3.5c0,1.5-.7,3.9-.7,3.9,0,0,4.8,3.7,5.6,4.3.3.2.7.4.4,1-.4,1.1-3.7,2.5-4,2.8-.7.7-.9,1-.7,1.7.2.6.8.7,2.1.3,1.3-.4,3.9-1.8,6.1-2.7,2.2-1,5.1-.7,5.1-.7v-4.2h-8.3v-13.4l-1.5-2.4,3.7-6.5,3.7,6.6-1.5,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.4,2.3v7h4.2v-7l-1.5-2.3,3.7-6.5,3.7,6.5-1.5,2.3v13.4c0,0-8.3,0-8.3,0v6.2c1.9,1.8,3.7,5.8,3.7,8.2s-1.6,3.5-1.6,3.5c.5,1.9.4,2.7.2,4.4-.2,1.8-2.4,4.5-2.4,4.5v32c0,2.2-5,2-5,0v-31.4c-2.8-3.1-10.6-5.6-10.6-5.6-2.8,2.8-4.6,7.8-4.6,7.8,1.2.9,3.2,0,3.9-.8.7-.8,2.2-1.1,3-.5.8.5,1,.7.8,2-.3,1.3-.8,3.4-.8,4.8s1.7,1.2,2.9,1.3c2.5.2,2.9,3,2.7,4.6s-1,4.9-1,7,.1,4.2.3,5.3c.2,1.1.6,2.4.5,3.9-.1,2-1.3,2.3-2.6,1-1.2-1.2-18.8-19.9-18.8-19.9-1.2,3.8,3.7,10.3,5.2,12.3,1.6,2,1.5,3.5,0,4.8-1.3,1.3-4,2.1-4.5,3.3-.5,1.2,1.2,5,4.9,9.8,3.7,4.7-4.2,7.9-8.9,8.8-4.7.9-4.7-2.3-4.4-4.1.3-1.8.3-2.8.2-4.4,0-1.6-1.5-3.8-3.6-6.4-2-2.6-2-5-1.2-11.1.8-6.1.6-10,.6-10,0,0-2.1,0-5.1,0-3-.1-5.5-1.9-5.8-9.2-.2-7.3-.4-24.8-.9-26.7-.5-1.8-2.4-2.1-3.3-2.4-.9-.2-.9-1.5,0-1.9,2.2-1.1,4.8-3.8,3.8-5.4-1-1.7-4.8-1.3-7.4,0-2.6,1.2-5.3,4-6,4.8-.7.7-1.3.7-1.2,0,0-.9-.5-4.9-.8-6.2-.4-1.4-1.6-4-2-4.7-.4-.7,0-1,.7-.7.7.3,2.2.9,3.7,1.3,1.5.4,2.9-.3,3.6-1.6.7-1.4,2.1-4.4,2.8-5.8.7-1.3,1.8-1,2.7-.8.9.2,1.7.8,2.6,1.1.8.4,1.5.3,1.8-.1.3-.4.6-.6,1.1-1.6.5-1,1.1-.6,1.2-.1,2.5,15,9,15.7,9,15.7-1,2.5-3.3,6.5-3.8,7.5-.6.9-.8,2.3-1,3.3-.1,1,.4,11,1.1,14.6.7,3.6,2.9,2.2,3.7,1.1.7-1.1,2.9-5.7,2.9-5.7,0,0,.5-1.3.5-2.3s-1.8-3.3-2.2-4c-.4-.7-2-2.1-2-5.6s3.1-5.9,4.3-6.8c1.1-.9,1.1-2.2,1-3-.5-2.7-3.4-8.4-4.7-10.6-1.4-2.2-4.1-6.3-4.1-6.3h5.7L34.1,0l4,7.6h4.1s0,0,0,0ZM41.3,30.6c1.8-3,2.6-6.2,2.6-6.2h-5.3s.9,3.2,2.7,6.2M35.8,15.2c.2,1.6,1.4,2.2,2.3,1.7.9-.5.7-1.8,0-2.8-.6-1-1.9-2.1-2.3-1.9-.4.2-.2,2.1,0,3M46.4,12.2c-.4-.2-1.8.9-2.4,1.9-.6,1-.8,2.3,0,2.8.9.5,2-.1,2.3-1.7.2-.9.5-2.8,0-3"/></svg> Man United News`;
+        }
+      }
+    }
+
+    // Fallback news when API fails
+    function loadFallbackNews() {
+      const manUtdNews = [
+        { title: 'MANCHESTER IS RED', content: 'United DESTROY City 2-0 at Old Trafford – Carrick\'s dream start, the noisy neighbours SILENCED!' },
+        { title: 'CARRICK MAGIC', content: 'First game as head coach, first derby WIN – couldn\'t have scripted it better!' },
+        { title: 'MBEUMO MAGIC', content: 'Bryan Mbeumo breaks the deadlock on 65\' – vintage United counter-attack, Bruno\'s silky assist!' },
+        { title: 'DORGU DOES IT AGAIN', content: 'Patrick Dorgu makes it 2-0 on 76\' – Cunha cross, back post finish, Old Trafford ERUPTS!' },
+        { title: 'DOMINANCE', content: '3 goals ruled out for offside (Amad, Bruno, Mount), hit woodwork TWICE – could\'ve been 6-0!' },
+        { title: 'CLEAN SHEET', content: 'Lammens brilliant, Martinez commanding, defence SOLID – only 31.9% possession but who cares!' },
+        { title: 'UP TO 4TH', content: 'United now on 35 points, INTO the Champions League places – what a turnaround!' },
+      ];
+      tickerItems = manUtdNews;
+      send('update_ticker', { items: tickerItems });
+      renderTickerItems();
+      console.log('[Ticker] Loaded fallback news items');
     }
 
     // ========================================================================
     // Ticker Settings
     // ========================================================================
+    let tickerSpeedDebounce = null;
     document.getElementById('tickerSpeed').addEventListener('input', (e) => {
       document.getElementById('tickerSpeedValue').textContent = e.target.value + 'px/s';
-      send('update_ticker', { speed: parseInt(e.target.value) });
+      // Debounce to avoid rate limiting
+      clearTimeout(tickerSpeedDebounce);
+      tickerSpeedDebounce = setTimeout(() => {
+        send('update_ticker', { speed: parseInt(e.target.value) });
+      }, 150);
     });
 
     document.getElementById('showTicker').addEventListener('change', (e) => {
       send('update_ticker', { show: e.target.checked });
     });
 
-    // Toggle superchat amount input
     document.getElementById('isSuperchat').addEventListener('change', (e) => {
       document.getElementById('superchatAmount').classList.toggle('hidden', !e.target.checked);
     });
@@ -857,13 +1764,44 @@
     }
 
     function showError(message) {
-      // Simple alert for now - could be improved with toast notifications
       alert('Error: ' + message);
     }
 
     function playSuperchatSound() {
-      // Could add audio playback here
       console.log('[Sound] Superchat received!');
+    }
+
+    // ========================================================================
+    // Accordion Functions
+    // ========================================================================
+    function toggleAccordion(contentId, headerEl) {
+      const content = document.getElementById(contentId);
+      const toggle = headerEl.querySelector('.accordion-toggle');
+      const isExpanded = !content.classList.contains('collapsed');
+
+      if (content.classList.contains('collapsed')) {
+        // Expand
+        content.classList.remove('collapsed');
+        content.style.maxHeight = content.scrollHeight + 'px';
+        toggle.classList.remove('collapsed');
+        headerEl.setAttribute('aria-expanded', 'true');
+        // Remove max-height after animation to allow content to grow naturally
+        content.addEventListener('transitionend', function handler() {
+          if (!content.classList.contains('collapsed')) {
+            content.style.maxHeight = 'none';
+          }
+          content.removeEventListener('transitionend', handler);
+        });
+      } else {
+        // Collapse - first set explicit height, then animate to 0
+        content.style.maxHeight = content.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+          content.classList.add('collapsed');
+          content.style.maxHeight = '0';
+          toggle.classList.add('collapsed');
+          headerEl.setAttribute('aria-expanded', 'false');
+        });
+      }
     }
 
     // ========================================================================
@@ -871,7 +1809,6 @@
     // ========================================================================
     connectWebSocket();
 
-    // Handle Enter key on inputs
     document.getElementById('youtubeUrl').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') connectToYouTube();
     });
@@ -885,26 +1822,7 @@
     // ========================================================================
     function updateTickerStyleUI() {
       const styleSelect = document.getElementById('tickerStyle');
-      const sportsSettings = document.getElementById('sportsTickerSettings');
-      const brandInput = document.getElementById('sportsBrand');
-      const categoryInput = document.getElementById('sportsCategory');
-      const logoInput = document.getElementById('sportsLogoUrl');
-
       if (styleSelect) styleSelect.value = tickerStyle;
-
-      // Show/hide sports settings
-      if (sportsSettings) {
-        if (tickerStyle === 'sports') {
-          sportsSettings.classList.remove('hidden');
-        } else {
-          sportsSettings.classList.add('hidden');
-        }
-      }
-
-      // Update sports ticker inputs
-      if (brandInput) brandInput.value = sportsTicker.brand || '';
-      if (categoryInput) categoryInput.value = sportsTicker.category || '';
-      if (logoInput) logoInput.value = sportsTicker.logoUrl || '';
     }
 
     function sendTickerUpdate() {
@@ -915,28 +1833,12 @@
       });
     }
 
-    // Ticker style dropdown
     document.getElementById('tickerStyle').addEventListener('change', (e) => {
       tickerStyle = e.target.value;
       updateTickerStyleUI();
       sendTickerUpdate();
     });
 
-    // Sports ticker inputs
-    document.getElementById('sportsBrand').addEventListener('input', (e) => {
-      sportsTicker.brand = e.target.value;
-      sendTickerUpdate();
-    });
-
-    document.getElementById('sportsCategory').addEventListener('input', (e) => {
-      sportsTicker.category = e.target.value;
-      sendTickerUpdate();
-    });
-
-    document.getElementById('sportsLogoUrl').addEventListener('input', (e) => {
-      sportsTicker.logoUrl = e.target.value;
-      sendTickerUpdate();
-    });
   </script>
 </body>
 </html>

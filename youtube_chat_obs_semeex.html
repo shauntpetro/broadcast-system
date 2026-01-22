@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semeex Football - Chat OBS</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto Condensed', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      padding: 40px;
+    }
+
+    /* Position variants */
+    body.pos-bottom-left { align-items: flex-end; justify-content: flex-start; }
+    body.pos-bottom-right { align-items: flex-end; justify-content: flex-end; }
+    body.pos-bottom-center { align-items: flex-end; justify-content: center; }
+    body.pos-top-left { align-items: flex-start; justify-content: flex-start; }
+    body.pos-top-right { align-items: flex-start; justify-content: flex-end; }
+    body.pos-top-center { align-items: flex-start; justify-content: center; }
+    body.pos-center { align-items: center; justify-content: center; }
+    body.pos-center-left { align-items: center; justify-content: flex-start; }
+    body.pos-center-right { align-items: center; justify-content: flex-end; }
+
+    /* ========================================
+       Semeex Football Broadcast Style V4
+       ESPN/Sky Sports Level Production
+    ======================================== */
+
+    :root {
+      color-scheme: dark;
+      --semeex-gold: #f5d000;
+      --semeex-gold-light: #ffe55c;
+      --semeex-gold-dark: #c9a800;
+      --semeex-red: #da020e;
+      --semeex-red-dark: #a00008;
+      --pill-dark: #141414;
+      --pill-light: #2a2a2a;
+    }
+
+    .semeex-container {
+      visibility: hidden;
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 540px;
+      max-width: 92vw;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      display: flex;
+      align-items: stretch;
+      position: relative;
+    }
+
+    /* Devil Mascot with glow */
+    .mascot-wrapper {
+      position: relative;
+      z-index: 20;
+      margin-right: 8px;
+    }
+
+    .mascot {
+      width: 80px;
+      height: 100px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8))
+              drop-shadow(0 0 30px rgba(218, 2, 14, 0.5));
+      position: relative;
+      z-index: 10;
+    }
+
+    .mascot img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Glow effect behind mascot */
+    .mascot-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90px;
+      height: 90px;
+      background: radial-gradient(circle, rgba(218, 2, 14, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(15px);
+      animation: mascotGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes mascotGlow {
+      0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    /* Main Pill Container Wrapper */
+    .pill-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Main Pill Container - Premium broadcast look */
+    .pill-container {
+      display: flex;
+      align-items: stretch;
+      background: linear-gradient(180deg,
+        #3d3d3d 0%,
+        #282828 3%,
+        var(--pill-dark) 50%,
+        #0a0a0a 97%,
+        #333333 100%
+      );
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.9),
+        0 8px 20px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(120, 120, 120, 0.2);
+      position: relative;
+      min-height: 72px;
+    }
+
+    /* Animated edge highlight */
+    .pill-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 20%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.3) 80%,
+        transparent 100%
+      );
+      z-index: 10;
+    }
+
+    /* Animated scan line effect */
+    .pill-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.02) 40%,
+        rgba(255, 255, 255, 0.06) 50%,
+        rgba(255, 255, 255, 0.02) 60%,
+        transparent 100%
+      );
+      animation: scanLine 5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    @keyframes scanLine {
+      0% { left: -50%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    /* Red accent stripe on left edge */
+    .red-stripe {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: linear-gradient(180deg,
+        var(--semeex-red) 0%,
+        var(--semeex-red-dark) 100%
+      );
+      box-shadow: 2px 0 15px rgba(218, 2, 14, 0.5);
+      z-index: 15;
+    }
+
+    /* Gold accent line under pill */
+    .accent-line {
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 55%;
+      height: 6px;
+      background: linear-gradient(90deg,
+        var(--semeex-gold) 0%,
+        var(--semeex-gold-dark) 60%,
+        transparent 100%
+      );
+      border-radius: 3px;
+      box-shadow:
+        0 0 25px rgba(245, 208, 0, 0.6),
+        0 4px 15px rgba(245, 208, 0, 0.3);
+    }
+
+    /* Secondary accent */
+    .accent-line-secondary {
+      position: absolute;
+      bottom: -18px;
+      left: 3%;
+      width: 40%;
+      height: 3px;
+      background: linear-gradient(90deg,
+        rgba(245, 208, 0, 0.5) 0%,
+        transparent 100%
+      );
+      border-radius: 2px;
+    }
+
+    /* Avatar with animated ring */
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 16px;
+      position: relative;
+    }
+
+    .avatar-ring {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        var(--semeex-gold) 0deg,
+        var(--semeex-gold-dark) 120deg,
+        var(--semeex-gold-light) 240deg,
+        var(--semeex-gold) 360deg
+      );
+      animation: ringRotate 4s linear infinite;
+    }
+
+    @keyframes ringRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .avatar-inner {
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--semeex-red) 0%, var(--semeex-red-dark) 100%);
+      z-index: 2;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar .initial {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Username Section with diagonal cut */
+    .username-section {
+      padding: 16px 44px 16px 24px;
+      background: linear-gradient(180deg,
+        var(--semeex-gold-light) 0%,
+        var(--semeex-gold) 10%,
+        #e8c400 50%,
+        #d4b300 90%,
+        var(--semeex-gold-dark) 100%
+      );
+      display: flex;
+      align-items: center;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 100%, 0 100%);
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    /* Diagonal lines pattern */
+    .username-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -45deg,
+        transparent 0px,
+        transparent 10px,
+        rgba(0, 0, 0, 0.03) 10px,
+        rgba(0, 0, 0, 0.03) 11px
+      );
+      pointer-events: none;
+    }
+
+    /* Inner highlight */
+    .username-section::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 33px;
+      height: 50%;
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+
+    /* Name column - contains username only now */
+    .name-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Badge row - floats on top of pill (same as superchat indicator) */
+    .badge-row {
+      display: none;
+      align-items: center;
+      position: absolute;
+      top: -14px;
+      left: 24px;
+      z-index: 20;
+    }
+
+    .badge-row.visible {
+      display: flex;
+    }
+
+    .username {
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7),
+        0 -1px 0 rgba(0, 0, 0, 0.05);
+      line-height: 1.1;
+    }
+
+    /* Message Section */
+    .message-section {
+      flex: 1;
+      padding: 14px 28px 14px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      min-width: 200px;
+    }
+
+    /* Subtle grid pattern on message bg */
+    .message-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px,
+          transparent 40px,
+          rgba(255, 255, 255, 0.01) 40px,
+          rgba(255, 255, 255, 0.01) 41px
+        );
+      pointer-events: none;
+    }
+
+    .message {
+      font-family: 'Oswald', sans-serif;
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.35;
+      color: #ffffff;
+      text-shadow:
+        0 0 40px rgba(255, 255, 255, 0.1),
+        0 2px 6px rgba(0, 0, 0, 0.95);
+      letter-spacing: 0.3px;
+      word-break: break-word;
+    }
+
+    /* Badge styling - sports style, sits above username */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      padding: 2px 8px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 50%
+      );
+    }
+
+    .badge.member {
+      background: linear-gradient(180deg, #43a047 0%, #2e7d32 100%);
+      color: white;
+      box-shadow: 0 3px 10px rgba(46, 125, 50, 0.5);
+    }
+
+    .badge.mod {
+      background: linear-gradient(180deg, #2196f3 0%, #1565c0 100%);
+      color: white;
+      box-shadow: 0 3px 10px rgba(21, 101, 192, 0.5);
+    }
+
+    .badge.owner {
+      background: linear-gradient(180deg, #ff9800 0%, #e65100 100%);
+      color: white;
+      box-shadow: 0 3px 10px rgba(230, 81, 0, 0.5);
+    }
+
+    /* ========================================
+       Superchat Styling
+    ======================================== */
+
+    .semeex-container.superchat .pill-container {
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.9),
+        0 8px 20px rgba(0, 0, 0, 0.7),
+        0 0 80px rgba(var(--glow-color), 0.5),
+        0 0 150px rgba(var(--glow-color), 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: superchatPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes superchatPulse {
+      0%, 100% {
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.9),
+          0 8px 20px rgba(0, 0, 0, 0.7),
+          0 0 80px rgba(var(--glow-color), 0.5),
+          0 0 150px rgba(var(--glow-color), 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.9),
+          0 8px 20px rgba(0, 0, 0, 0.7),
+          0 0 100px rgba(var(--glow-color), 0.6),
+          0 0 180px rgba(var(--glow-color), 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .semeex-container.superchat .red-stripe {
+      background: linear-gradient(180deg,
+        var(--tier-color, var(--semeex-red)) 0%,
+        color-mix(in srgb, var(--tier-color, var(--semeex-red)) 100%, black 30%) 100%
+      );
+      box-shadow: 2px 0 20px rgba(var(--glow-color), 0.6);
+    }
+
+    .semeex-container.superchat .accent-line {
+      background: linear-gradient(90deg,
+        var(--tier-color, var(--semeex-gold)) 0%,
+        transparent 100%
+      );
+      box-shadow:
+        0 0 30px rgba(var(--glow-color), 0.7),
+        0 4px 20px rgba(var(--glow-color), 0.4);
+      animation: accentPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes accentPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Amount display */
+    .amount-display {
+      display: none;
+      align-items: center;
+      margin-left: 18px;
+      padding-left: 18px;
+      border-left: 3px solid rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 2;
+    }
+
+    .semeex-container.superchat .amount-display {
+      display: flex;
+    }
+
+    .amount {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1a1a1a;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+      line-height: 1;
+    }
+
+    /* Superchat floating tag */
+    .type-indicator {
+      display: none;
+      position: absolute;
+      top: -14px;
+      right: 24px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 18px;
+      background: linear-gradient(180deg, #f44336 0%, #c62828 100%);
+      color: white;
+      border-radius: 4px;
+      box-shadow:
+        0 4px 15px rgba(198, 40, 40, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 20;
+    }
+
+    .type-indicator::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 50%
+      );
+    }
+
+    .semeex-container.superchat .type-indicator {
+      display: block;
+    }
+
+    /* Tier colors */
+    .tier-blue { --glow-color: 33, 150, 243; --tier-color: #2196f3; }
+    .tier-teal { --glow-color: 0, 188, 212; --tier-color: #00bcd4; }
+    .tier-yellow { --glow-color: 255, 193, 7; --tier-color: #ffc107; }
+    .tier-orange { --glow-color: 255, 152, 0; --tier-color: #ff9800; }
+    .tier-magenta { --glow-color: 233, 30, 99; --tier-color: #e91e63; }
+    .tier-red { --glow-color: 244, 67, 54; --tier-color: #f44336; }
+
+    /* High tier styling */
+    .tier-red .username-section,
+    .tier-magenta .username-section {
+      background: linear-gradient(180deg,
+        color-mix(in srgb, var(--tier-color) 100%, white 30%) 0%,
+        var(--tier-color) 50%,
+        color-mix(in srgb, var(--tier-color) 100%, black 20%) 100%
+      );
+    }
+
+    .tier-red .username,
+    .tier-magenta .username {
+      color: white;
+      text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(255, 255, 255, 0.2);
+    }
+
+    .tier-red .amount,
+    .tier-magenta .amount {
+      color: white;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .tier-red .amount-display,
+    .tier-magenta .amount-display {
+      border-left-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .tier-red .avatar-ring,
+    .tier-magenta .avatar-ring {
+      background: conic-gradient(
+        from 0deg,
+        white 0deg,
+        rgba(255, 255, 255, 0.6) 120deg,
+        white 240deg,
+        rgba(255, 255, 255, 0.6) 360deg
+      );
+    }
+
+    /* ========================================
+       Debug / Waiting State
+    ======================================== */
+
+    .waiting-message {
+      display: none;
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+    }
+
+    body.debug .waiting-message {
+      display: block;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Semeex Football Chat Display V4 -->
+  <div id="semeexContainer" class="semeex-container" onclick="unpinComment()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();unpinComment();}" style="cursor: pointer;" title="Click to unpin" role="button" tabindex="0" aria-label="Unpin current message">
+
+    <div class="header-bar">
+      <!-- Devil Mascot with glow -->
+      <div class="mascot-wrapper" id="mascotWrapper">
+        <div class="mascot-glow" id="mascotGlow"></div>
+        <div class="mascot" id="mascot">
+          <img src="/uploads/manchester-united-devil-seeklogo.svg" alt="Semeex Devil" width="80" height="100">
+        </div>
+      </div>
+
+      <!-- Pill Container -->
+      <div class="pill-wrapper" id="pillWrapper">
+        <!-- Superchat indicator -->
+        <div class="type-indicator" id="typeIndicator">SUPERCHAT</div>
+
+        <!-- Badge floats on top of pill (same level as superchat indicator) -->
+        <div class="badge-row" id="badgeRow">
+          <span class="badge" id="badge"></span>
+        </div>
+
+        <div class="pill-container" id="pillContainer">
+          <!-- Red stripe -->
+          <div class="red-stripe" id="redStripe"></div>
+
+          <!-- Username Section -->
+          <div class="username-section" id="usernameSection">
+            <!-- Avatar with ring -->
+            <div class="avatar" id="avatar">
+              <div class="avatar-ring" id="avatarRing"></div>
+              <div class="avatar-inner">
+                <img id="avatarImg" src="" alt="" width="50" height="50" style="display: none;">
+                <div class="initial" id="avatarInitial">?</div>
+              </div>
+            </div>
+            <!-- Name column -->
+            <div class="name-column">
+              <span class="username" id="username">USERNAME</span>
+            </div>
+            <div class="amount-display" id="amountDisplay">
+              <span class="amount" id="amount">$0.00</span>
+            </div>
+          </div>
+
+          <!-- Message Section -->
+          <div class="message-section" id="messageSection">
+            <span class="message" id="message">Message text appears here</span>
+          </div>
+        </div>
+
+        <!-- Accent lines -->
+        <div class="accent-line" id="accentLine"></div>
+        <div class="accent-line-secondary" id="accentLineSecondary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug waiting message -->
+  <div class="waiting-message">Waiting for pinned comment...</div>
+
+  <script>
+    // ========================================================================
+    // Configuration
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug') === 'true';
+
+    if (debug) {
+      document.body.classList.add('debug');
+    }
+
+    const position = params.get('position') || 'bottom-left';
+    document.body.classList.add(`pos-${position}`);
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let currentPinned = null;
+    let isAnimating = false;
+
+    // DOM Elements
+    const container = document.getElementById('semeexContainer');
+    const mascotWrapper = document.getElementById('mascotWrapper');
+    const mascotGlow = document.getElementById('mascotGlow');
+    const mascot = document.getElementById('mascot');
+    const pillWrapper = document.getElementById('pillWrapper');
+    const pillContainer = document.getElementById('pillContainer');
+    const redStripe = document.getElementById('redStripe');
+    const usernameSection = document.getElementById('usernameSection');
+    const avatarEl = document.getElementById('avatar');
+    const avatarRing = document.getElementById('avatarRing');
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarInitial = document.getElementById('avatarInitial');
+    const usernameEl = document.getElementById('username');
+    const amountDisplay = document.getElementById('amountDisplay');
+    const amountEl = document.getElementById('amount');
+    const messageSection = document.getElementById('messageSection');
+    const messageEl = document.getElementById('message');
+    const badgeRow = document.getElementById('badgeRow');
+    const badgeEl = document.getElementById('badge');
+    const accentLine = document.getElementById('accentLine');
+    const accentLineSecondary = document.getElementById('accentLineSecondary');
+    const typeIndicator = document.getElementById('typeIndicator');
+
+    // ========================================================================
+    // Superchat Tier System
+    // ========================================================================
+    function getTier(amount) {
+      if (!amount) return { tier: 'comment', tierNum: 0, color: '#f5d000' };
+
+      const num = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+
+      if (num >= 100) return { tier: 'red', tierNum: 7, color: '#f44336' };
+      if (num >= 50) return { tier: 'red', tierNum: 6, color: '#f44336' };
+      if (num >= 20) return { tier: 'magenta', tierNum: 5, color: '#e91e63' };
+      if (num >= 10) return { tier: 'orange', tierNum: 4, color: '#ff9800' };
+      if (num >= 5) return { tier: 'yellow', tierNum: 3, color: '#ffc107' };
+      if (num >= 2) return { tier: 'teal', tierNum: 2, color: '#00bcd4' };
+      if (num >= 1) return { tier: 'blue', tierNum: 1, color: '#2196f3' };
+
+      return { tier: 'comment', tierNum: 0, color: '#f5d000' };
+    }
+
+    // ========================================================================
+    // Render Pinned Comment
+    // ========================================================================
+    function renderPinned(pinned) {
+      if (!pinned) return;
+
+      const isSuperchat = pinned.isSuperchat || pinned.type === 'superchat';
+      const tierInfo = isSuperchat ? getTier(pinned.amount) : { tier: 'comment', tierNum: 0, color: '#f5d000' };
+
+      // Reset classes
+      container.className = 'semeex-container';
+
+      if (isSuperchat) {
+        container.classList.add('superchat');
+        container.classList.add(`tier-${tierInfo.tier}`);
+      }
+
+      // Update username
+      usernameEl.textContent = pinned.author || pinned.username || 'UNKNOWN';
+
+      // Update message
+      messageEl.textContent = pinned.message || '';
+
+      // Update amount for superchats
+      if (isSuperchat && (pinned.amountFormatted || pinned.amount)) {
+        amountEl.textContent = pinned.amountFormatted || `$${pinned.amount}`;
+        amountDisplay.style.display = 'flex';
+      } else {
+        amountDisplay.style.display = 'none';
+      }
+
+      // Update badge
+      const badges = pinned.badges || [];
+      let hasBadge = false;
+      if (badges.includes('owner') || pinned.isOwner) {
+        badgeEl.textContent = 'OWNER';
+        badgeEl.className = 'badge owner';
+        hasBadge = true;
+      } else if (badges.includes('moderator') || pinned.isMod) {
+        badgeEl.textContent = 'MOD';
+        badgeEl.className = 'badge mod';
+        hasBadge = true;
+      } else if (badges.includes('member') || pinned.isMember) {
+        badgeEl.textContent = 'MEMBER';
+        badgeEl.className = 'badge member';
+        hasBadge = true;
+      }
+
+      // Show/hide badge row
+      if (hasBadge) {
+        badgeRow.classList.add('visible');
+      } else {
+        badgeRow.classList.remove('visible');
+      }
+
+      // Update avatar
+      if (pinned.authorPhoto || pinned.avatar) {
+        avatarImg.src = pinned.authorPhoto || pinned.avatar;
+        avatarImg.style.display = 'block';
+        avatarInitial.style.display = 'none';
+      } else {
+        const initial = (pinned.author || pinned.username || 'U')[0].toUpperCase();
+        avatarInitial.textContent = initial;
+        avatarInitial.style.display = 'flex';
+        avatarImg.style.display = 'none';
+      }
+    }
+
+    // ========================================================================
+    // Premium Broadcast Animations V4
+    // ========================================================================
+    function animateIn(pinned) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      renderPinned(pinned);
+      currentPinned = pinned;
+
+      // Kill existing
+      gsap.killTweensOf([container, mascotWrapper, mascotGlow, mascot, pillWrapper, pillContainer,
+                         redStripe, usernameSection, avatarEl, avatarRing, messageSection,
+                         usernameEl, messageEl, amountDisplay, badgeEl, accentLine,
+                         accentLineSecondary, typeIndicator]);
+
+      // Initial states
+      gsap.set(container, { visibility: 'visible', opacity: 1 });
+      gsap.set(mascotWrapper, { x: -180, opacity: 0 });
+      gsap.set(mascotGlow, { scale: 0, opacity: 0 });
+      gsap.set(pillContainer, { scaleX: 0, opacity: 0, transformOrigin: 'left center' });
+      gsap.set(redStripe, { scaleY: 0, transformOrigin: 'top center', opacity: 0 });
+      gsap.set(usernameSection, { opacity: 0, x: -30 });
+      gsap.set(avatarEl, { scale: 0, opacity: 0 });
+      gsap.set(avatarRing, { rotation: -180, opacity: 0 });
+      gsap.set(usernameEl, { y: 25, opacity: 0 });
+      gsap.set(messageSection, { opacity: 0 });
+      gsap.set(messageEl, { x: 80, opacity: 0 });
+      gsap.set(amountDisplay, { scale: 0.3, opacity: 0 });
+      gsap.set(badgeEl, { scale: 0, y: -15, opacity: 0 });
+      gsap.set(accentLine, { scaleX: 0, transformOrigin: 'left center', opacity: 0 });
+      gsap.set(accentLineSecondary, { scaleX: 0, transformOrigin: 'left center', opacity: 0 });
+      gsap.set(typeIndicator, { y: 25, opacity: 0, scale: 0.7 });
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+          console.log('[Semeex OBS V4] Animation complete:', pinned.author);
+        }
+      });
+
+      // 1. Mascot enters with dramatic slide
+      tl.to(mascotWrapper, {
+        x: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: 'power3.out'
+      });
+
+      // 2. Mascot glow appears
+      tl.to(mascotGlow, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      }, '-=0.4');
+
+      // 3. Pill expands
+      tl.to(pillContainer, {
+        scaleX: 1,
+        opacity: 1,
+        duration: 0.55,
+        ease: 'power4.out'
+      }, '-=0.45');
+
+      // 4. Red stripe grows
+      tl.to(redStripe, {
+        scaleY: 1,
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power3.out'
+      }, '-=0.4');
+
+      // 5. Superchat label (if applicable)
+      if (container.classList.contains('superchat')) {
+        tl.to(typeIndicator, {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.4,
+          ease: 'back.out(2)'
+        }, '-=0.35');
+      }
+
+      // 6. Username section slides in
+      tl.to(usernameSection, {
+        opacity: 1,
+        x: 0,
+        duration: 0.35,
+        ease: 'power3.out'
+      }, '-=0.35');
+
+      // 7. Avatar pops
+      tl.to(avatarEl, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.45,
+        ease: 'back.out(1.5)'
+      }, '-=0.25');
+
+      // 8. Ring spins in
+      tl.to(avatarRing, {
+        rotation: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      }, '-=0.35');
+
+      // 9. Username rises
+      tl.to(usernameEl, {
+        y: 0,
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power3.out'
+      }, '-=0.4');
+
+      // 10. Accent lines sweep
+      tl.to(accentLine, {
+        scaleX: 1,
+        opacity: 1,
+        duration: 0.45,
+        ease: 'power2.out'
+      }, '-=0.3');
+
+      tl.to(accentLineSecondary, {
+        scaleX: 1,
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.3');
+
+      // 11. Message section reveals
+      tl.to(messageSection, {
+        opacity: 1,
+        duration: 0.25
+      }, '-=0.35');
+
+      // 12. Message slides
+      tl.to(messageEl, {
+        x: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.out'
+      }, '-=0.25');
+
+      // 13. Amount (if superchat)
+      if (amountDisplay.style.display !== 'none') {
+        tl.to(amountDisplay, {
+          scale: 1,
+          opacity: 1,
+          duration: 0.4,
+          ease: 'back.out(2)'
+        }, '-=0.45');
+      }
+
+      // 14. Badge (if present)
+      if (badgeRow.classList.contains('visible')) {
+        tl.to(badgeEl, {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          duration: 0.35,
+          ease: 'back.out(2.5)'
+        }, '-=0.35');
+      }
+
+      console.log('[Semeex OBS V4] Animating in:', pinned.author);
+    }
+
+    function animateOut(callback) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+          currentPinned = null;
+          isAnimating = false;
+          if (callback) callback();
+          console.log('[Semeex OBS V4] Animation out complete');
+        }
+      });
+
+      // 1. Type indicator
+      tl.to(typeIndicator, {
+        y: -25,
+        opacity: 0,
+        scale: 0.7,
+        duration: 0.25,
+        ease: 'power2.in'
+      });
+
+      // 2. Badge and message
+      tl.to([badgeEl, messageEl], {
+        opacity: 0,
+        x: 40,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // 3. Avatar, username, amount
+      tl.to([avatarEl, usernameEl, amountDisplay], {
+        opacity: 0,
+        scale: 0.7,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.15');
+
+      // 4. Accent lines
+      tl.to([accentLine, accentLineSecondary], {
+        scaleX: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power3.in'
+      }, '-=0.15');
+
+      // 5. Red stripe
+      tl.to(redStripe, {
+        scaleY: 0,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // 6. Pill collapses
+      tl.to(pillContainer, {
+        scaleX: 0,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power3.in'
+      }, '-=0.2');
+
+      // 7. Mascot exits
+      tl.to(mascotGlow, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.3');
+
+      tl.to(mascotWrapper, {
+        x: -150,
+        opacity: 0,
+        duration: 0.45,
+        ease: 'power2.in'
+      }, '-=0.25');
+
+      console.log('[Semeex OBS V4] Animating out');
+    }
+
+    // ========================================================================
+    // Click to Unpin
+    // ========================================================================
+    function unpinComment() {
+      if (currentPinned && ws && ws.readyState === WebSocket.OPEN) {
+        console.log('[Semeex OBS V4] Unpinning via click');
+        ws.send(JSON.stringify({ type: 'unpin' }));
+      }
+    }
+
+    // ========================================================================
+    // Handle Pin Updates
+    // ========================================================================
+    function handlePinUpdate(pinnedMessage) {
+      if (pinnedMessage && !currentPinned) {
+        animateIn(pinnedMessage);
+      } else if (!pinnedMessage && currentPinned) {
+        animateOut();
+      } else if (pinnedMessage && currentPinned) {
+        if (pinnedMessage.id !== currentPinned.id) {
+          animateOut(() => {
+            setTimeout(() => animateIn(pinnedMessage), 200);
+          });
+        }
+      }
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[Semeex OBS V4] WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleOBSMessage(data);
+        } catch (e) {
+          console.error('[Semeex OBS V4] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[Semeex OBS V4] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[Semeex OBS V4] WebSocket error:', error);
+      };
+    }
+
+    function handleOBSMessage(data) {
+      switch (data.type) {
+        case 'batch':
+          if (data.messages && Array.isArray(data.messages)) {
+            for (const msg of data.messages) {
+              handleOBSMessage(msg);
+            }
+          }
+          break;
+
+        case 'init':
+          if (data.data.pinnedMessage) {
+            handlePinUpdate(data.data.pinnedMessage);
+          }
+          break;
+
+        case 'pin':
+          handlePinUpdate(data.data.message);
+          break;
+      }
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Debug: Test animation
+    if (params.get('test') === 'true') {
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_1',
+          author: 'RedDevil_Fan92',
+          message: 'What a goal! Rashford is absolutely on fire today!',
+          isSuperchat: false,
+          badges: ['member'],
+          authorPhoto: ''
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_2',
+          author: 'GLORY_GLORY_MAN_UNITED',
+          message: 'Amazing content as always! Keep it up lads! This is the best football channel!',
+          isSuperchat: true,
+          amount: 50,
+          amountFormatted: '$50.00',
+          badges: [],
+          authorPhoto: ''
+        });
+      }, 8000);
+
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_3',
+          author: 'UnitedTillIDie',
+          message: 'SIUUUUU! Best channel on YouTube! Glory glory Man United!',
+          isSuperchat: true,
+          amount: 100,
+          amountFormatted: '$100.00',
+          badges: ['owner'],
+          authorPhoto: ''
+        });
+      }, 16000);
+
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_4',
+          author: 'ManUtdSupporter_OldTrafford',
+          message: 'This is a really long message to test how the text wraps when someone types a lot of text in the YouTube chat. The full message should be visible without any truncation so viewers can read everything that the fan has written!',
+          isSuperchat: false,
+          badges: ['member'],
+          authorPhoto: ''
+        });
+      }, 24000);
+
+      setTimeout(() => {
+        handlePinUpdate({
+          id: 'test_5',
+          author: 'BigDonation',
+          message: 'Incredible stream today! I have been watching you guys for years and this is by far the best content. The analysis is spot on and the community here is amazing!',
+          isSuperchat: true,
+          amount: 25,
+          amountFormatted: '$25.00',
+          badges: ['moderator'],
+          authorPhoto: ''
+        });
+      }, 32000);
+
+      setTimeout(() => {
+        handlePinUpdate(null);
+      }, 40000);
+    }
+  </script>
+</body>
+</html>

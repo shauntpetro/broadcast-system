@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OBS Slideshow</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="stylesheet" href="css/theme.css">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; background: #0a0a0a; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
@@ -21,9 +23,13 @@
     
     /* Transition system - duration controlled by CSS variable */
     .slide-container {
-      transition: transform var(--transition-duration, 0.4s) ease-out,
-                  filter var(--transition-duration, 0.4s) ease-out,
-                  opacity var(--transition-duration, 0.4s) ease-out;
+      transition: transform var(--transition-duration, 0.4s) cubic-bezier(0.25, 0.1, 0.25, 1),
+                  filter var(--transition-duration, 0.4s) cubic-bezier(0.25, 0.1, 0.25, 1),
+                  opacity var(--transition-duration, 0.4s) cubic-bezier(0.25, 0.1, 0.25, 1);
+      /* GPU acceleration for smooth transitions */
+      will-change: transform, opacity, filter;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
 
     /* ===== EXIT ANIMATIONS ===== */
@@ -35,7 +41,7 @@
     .transition-fade .slide-exit { opacity: 0; }
 
     /* Blur - blur out/in */
-    .transition-blur .slide-exit { filter: blur(30px); opacity: 0; transform: scale(0.95); }
+    .transition-blur .slide-exit { filter: blur(30px); opacity: 0; }
 
     /* Slide Left - slide exits to left */
     .transition-slideLeft .slide-exit { transform: translateX(-100%); }
@@ -49,6 +55,32 @@
     /* Whip Pan - fast motion blur exit */
     .transition-whipPan .slide-exit { transform: translateX(-100%) skewX(-5deg); filter: blur(10px); opacity: 0; }
 
+    /* Glitch - digital distortion */
+    .transition-glitch .slide-exit {
+      opacity: 0;
+      filter: saturate(2) hue-rotate(90deg);
+      clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%, 0 66%, 100% 66%, 100% 100%, 0 100%);
+    }
+
+    /* Ripple - wave distortion */
+    .transition-ripple .slide-exit {
+      transform: scale(0.9);
+      opacity: 0;
+      filter: blur(15px);
+    }
+
+    /* Shutter - vertical blinds */
+    .transition-shutter .slide-exit {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    /* Flash - white flash transition */
+    .transition-flash .slide-exit {
+      opacity: 0;
+      filter: brightness(3);
+    }
+
     /* ===== ENTER ANIMATIONS ===== */
     /* Fade enter */
     @keyframes fade-enter {
@@ -58,8 +90,8 @@
 
     /* Blur enter */
     @keyframes blur-enter {
-      from { filter: blur(30px); opacity: 0; transform: scale(1.05); }
-      to { filter: blur(0); opacity: 1; transform: scale(1); }
+      from { filter: blur(30px); opacity: 0; }
+      to { filter: blur(0); opacity: 1; }
     }
 
     /* Slide Left enter - enters from right */
@@ -76,7 +108,7 @@
 
     /* Zoom enter */
     @keyframes zoom-enter {
-      from { transform: scale(1.5); opacity: 0; }
+      from { transform: scale(0.8); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
@@ -86,6 +118,36 @@
       to { transform: translateX(0) skewX(0); filter: blur(0); opacity: 1; }
     }
 
+    /* Glitch enter */
+    @keyframes glitch-enter {
+      0% { opacity: 0; filter: saturate(2) hue-rotate(-90deg); transform: translate(-5px, 2px); }
+      20% { opacity: 0.6; filter: saturate(1.5) hue-rotate(-45deg); transform: translate(3px, -2px); }
+      40% { opacity: 0.8; filter: saturate(1.2) hue-rotate(-20deg); transform: translate(-2px, 1px); }
+      60% { opacity: 0.9; filter: saturate(1.1) hue-rotate(-10deg); transform: translate(1px, -1px); }
+      80% { opacity: 1; filter: saturate(1) hue-rotate(-5deg); transform: translate(-1px, 0); }
+      100% { opacity: 1; filter: saturate(1) hue-rotate(0deg); transform: translate(0, 0); }
+    }
+
+    /* Ripple enter */
+    @keyframes ripple-enter {
+      0% { transform: scale(0.9); opacity: 0; filter: blur(15px); }
+      50% { filter: blur(5px); }
+      100% { transform: scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    /* Shutter enter */
+    @keyframes shutter-enter {
+      from { transform: scaleX(0); opacity: 0; }
+      to { transform: scaleX(1); opacity: 1; }
+    }
+
+    /* Flash enter */
+    @keyframes flash-enter {
+      0% { opacity: 0; filter: brightness(1); }
+      30% { opacity: 1; filter: brightness(3); }
+      100% { opacity: 1; filter: brightness(1); }
+    }
+
     /* Apply enter animations - use 'both' fill-mode to start from 'from' state and stay at 'to' state */
     /* Also disable transition to prevent conflicts and allow overflow for slide animations */
     .slide-enter-fade,
@@ -93,7 +155,11 @@
     .slide-enter-slideLeft,
     .slide-enter-slideRight,
     .slide-enter-zoom,
-    .slide-enter-whipPan {
+    .slide-enter-whipPan,
+    .slide-enter-glitch,
+    .slide-enter-ripple,
+    .slide-enter-shutter,
+    .slide-enter-flash {
       overflow: visible !important;
     }
 
@@ -121,7 +187,22 @@
       animation: whipPan-enter var(--transition-duration, 0.4s) ease-out both !important;
       transition: none !important;
     }
-
+    .slide-enter-glitch .slide-container {
+      animation: glitch-enter var(--transition-duration, 0.4s) steps(6) both !important;
+      transition: none !important;
+    }
+    .slide-enter-ripple .slide-container {
+      animation: ripple-enter var(--transition-duration, 0.4s) ease-out both !important;
+      transition: none !important;
+    }
+    .slide-enter-shutter .slide-container {
+      animation: shutter-enter var(--transition-duration, 0.4s) ease-out both !important;
+      transition: none !important;
+    }
+    .slide-enter-flash .slide-container {
+      animation: flash-enter var(--transition-duration, 0.4s) ease-out both !important;
+      transition: none !important;
+    }
     /* Allow overflow during slide transitions so content can move off-screen */
     .transition-slideLeft,
     .transition-slideRight,
@@ -137,16 +218,234 @@
     .scrollbar::-webkit-scrollbar-track { background: transparent; }
     .scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     .scrollbar::-webkit-scrollbar-thumb:hover { background: #444; }
+
+    /* Slide item drag and drop */
+    .slide-item {
+      transition: transform 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+    }
+    .slide-item.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+    .slide-item[draggable="true"] {
+      user-select: none;
+    }
+
+    /* ===== VISUAL EFFECTS ===== */
+    /* Grayscale / Black & White */
+    .effect-bw { filter: grayscale(100%); }
+    .effect-bw-contrast { filter: grayscale(100%) contrast(1.2); }
+
+    /* Sepia / Vintage */
+    .effect-sepia { filter: sepia(80%); }
+    .effect-vintage { filter: sepia(40%) contrast(1.1) brightness(0.95) saturate(0.9); }
+
+    /* Film Grain overlay */
+    .effect-grain::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.15;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      animation: grainShift 0.5s steps(10) infinite;
+    }
+    @keyframes grainShift {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-1%, -1%); }
+      20% { transform: translate(1%, 1%); }
+      30% { transform: translate(-1%, 1%); }
+      40% { transform: translate(1%, -1%); }
+      50% { transform: translate(-1%, 0%); }
+      60% { transform: translate(1%, 0%); }
+      70% { transform: translate(0%, 1%); }
+      80% { transform: translate(0%, -1%); }
+      90% { transform: translate(1%, 1%); }
+    }
+
+    /* Halftone effect */
+    .effect-halftone {
+      position: relative;
+    }
+    .effect-halftone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, #000 1px, transparent 1px);
+      background-size: 4px 4px;
+      opacity: 0.3;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+
+    /* Film look - warm tones + vignette + grain */
+    .effect-film {
+      filter: contrast(1.1) saturate(1.15) brightness(0.98);
+    }
+    .effect-film::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .effect-film::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.08;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Cinematic - letterbox + color grade */
+    .effect-cinematic {
+      filter: contrast(1.15) saturate(0.9) brightness(0.95);
+    }
+    .effect-cinematic::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.95) 0%,
+        transparent 12%,
+        transparent 88%,
+        rgba(0,0,0,0.95) 100%
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Vignette only */
+    .effect-vignette::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* High Contrast */
+    .effect-contrast { filter: contrast(1.4) brightness(1.05); }
+
+    /* Faded / Washed out */
+    .effect-faded { filter: contrast(0.9) brightness(1.1) saturate(0.7); }
+
+    /* Cool / Cold tones */
+    .effect-cool { filter: saturate(0.9) brightness(1.02) hue-rotate(-10deg); }
+
+    /* Warm tones */
+    .effect-warm { filter: saturate(1.1) brightness(1.02) sepia(15%); }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    /* Sidebar responsive behavior */
+    #sidebar {
+      transition: width 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Mobile: Sidebar as overlay */
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 50;
+        transform: translateX(-100%);
+        width: 280px !important;
+      }
+      #sidebar.sidebar-open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .sidebar-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #mobile-menu-btn {
+        display: flex !important;
+      }
+      /* Editor panel full width on mobile */
+      .editor-panel {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-height: 60vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        z-index: 60;
+      }
+      /* Settings panel full width on mobile */
+      .settings-panel {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        max-height: 70vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        z-index: 55;
+      }
+    }
+
+    /* Tablet: Narrower sidebar */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      #sidebar {
+        width: 200px !important;
+      }
+      .editor-panel {
+        width: 260px !important;
+      }
+      .settings-panel {
+        width: 240px !important;
+      }
+    }
+
+    /* Large screens: Standard layout */
+    @media (min-width: 1025px) {
+      #mobile-menu-btn {
+        display: none !important;
+      }
+    }
+
+    /* Touch-friendly targets */
+    @media (pointer: coarse) {
+      button, .clickable {
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
     
     input[type="text"], textarea, select {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #ffffff !important;
       border-radius: 6px;
       padding: 8px 12px;
       font-size: 13px;
       width: 100%;
       outline: none;
+      -webkit-text-fill-color: #ffffff;
+    }
+    input[type="text"]::placeholder, textarea::placeholder {
+      color: rgba(255,255,255,0.5);
+      -webkit-text-fill-color: rgba(255,255,255,0.5);
     }
     input[type="text"]:focus, textarea:focus, select:focus { border-color: #ef4444; }
     textarea { resize: none; }
@@ -165,6 +464,200 @@
       background: #ef4444;
       border-radius: 50%;
       cursor: pointer;
+    }
+
+    /* ===== BROADCAST QUOTE OVERLAY ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap');
+
+    .broadcast-quote-overlay {
+      position: absolute;
+      bottom: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      z-index: 20;
+      /* Outer glow effect */
+      filter: drop-shadow(0 0 25px rgba(0,0,0,0.6)) drop-shadow(0 0 50px rgba(0,0,0,0.4));
+    }
+
+    .broadcast-quote-frame {
+      position: relative;
+      /* Chrome/silver metallic frame */
+      background: linear-gradient(180deg,
+        #e8e8e8 0%,
+        #d0d0d0 8%,
+        #b8b8b8 15%,
+        #c8c8c8 50%,
+        #a0a0a0 85%,
+        #b0b0b0 92%,
+        #c0c0c0 100%
+      );
+      padding: 8px;
+      /* Chamfered corners - left side straight, right side angled */
+      clip-path: polygon(
+        0 0,
+        calc(100% - 40px) 0,
+        100% 40px,
+        100% 100%,
+        0 100%
+      );
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.7),
+        0 6px 20px rgba(0,0,0,0.5),
+        0 0 60px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -1px 0 rgba(0,0,0,0.2);
+      transform: perspective(1000px) rotateY(-2deg) rotateX(1deg);
+      transform-origin: left center;
+    }
+
+    /* Yellow accent bar - bottom left extending outward diagonally */
+    .broadcast-quote-frame::before {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: -60px;
+      width: 120px;
+      height: 14px;
+      background: linear-gradient(90deg,
+        #d4c200 0%,
+        #ffea00 30%,
+        #fff200 60%,
+        #ffea00 100%
+      );
+      transform: skewX(-45deg);
+      z-index: 20;
+      box-shadow:
+        0 2px 10px rgba(255,234,0,0.7),
+        0 0 20px rgba(255,234,0,0.4);
+    }
+
+    /* Yellow accent bar - top right extending outward diagonally */
+    .broadcast-quote-frame::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: -20px;
+      width: 120px;
+      height: 14px;
+      background: linear-gradient(90deg,
+        #ffea00 0%,
+        #fff200 40%,
+        #ffea00 70%,
+        #d4c200 100%
+      );
+      transform: skewX(-45deg);
+      z-index: 20;
+      box-shadow:
+        0 2px 10px rgba(255,234,0,0.7),
+        0 0 20px rgba(255,234,0,0.4);
+    }
+
+    .broadcast-quote-inner {
+      /* Dark interior with subtle gradient */
+      background: linear-gradient(135deg,
+        #1a1a1a 0%,
+        #0f0f0f 50%,
+        #141414 100%
+      );
+      padding: 20px 120px 20px 28px;
+      position: relative;
+      min-height: 100px;
+      /* Match the outer clip-path shape */
+      clip-path: polygon(
+        0 0,
+        calc(100% - 36px) 0,
+        100% 36px,
+        100% 100%,
+        0 100%
+      );
+      overflow: hidden;
+    }
+
+    .broadcast-quote-author {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900; /* Black */
+      font-size: 48px;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.08em; /* +20 tracking */
+      margin-bottom: 12px;
+      text-shadow:
+        2px 2px 4px rgba(0,0,0,0.8),
+        0 0 20px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 5;
+    }
+
+    .broadcast-quote-text {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700; /* Bold */
+      font-size: 36px;
+      color: #c0c0c0;
+      font-style: normal;
+      line-height: 1.35;
+      letter-spacing: 0.02em; /* Slight tracking */
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+      position: relative;
+      z-index: 5;
+      max-width: 100%;
+    }
+
+    /* Man United Devil Logo - large, overlapping the top of frame */
+    .broadcast-quote-logo {
+      position: absolute;
+      right: 40px;
+      top: -30px;
+      transform: none;
+      width: 140px;
+      height: auto;
+      filter:
+        drop-shadow(0 4px 20px rgba(218,2,14,0.5))
+        drop-shadow(3px 6px 12px rgba(0,0,0,0.7));
+      z-index: 25;
+      opacity: 1;
+    }
+
+    /* No gradient overlay needed - using PNG background */
+
+    /* Animation for quote entry */
+    @keyframes quote-slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(-100px);
+        filter: blur(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+        filter: blur(0);
+      }
+    }
+
+    .broadcast-quote-overlay.animate-in {
+      animation: quote-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Responsive scaling */
+    @media (max-width: 1400px) {
+      .broadcast-quote-overlay { width: 85%; }
+      .broadcast-quote-author { font-size: 40px; letter-spacing: 0.06em; }
+      .broadcast-quote-text { font-size: 30px; }
+      .broadcast-quote-logo { width: 110px; right: 30px; top: -20px; }
+      .broadcast-quote-inner { padding: 18px 100px 18px 24px; min-height: 85px; }
+      .broadcast-quote-frame::before,
+      .broadcast-quote-frame::after { width: 100px; height: 12px; }
+    }
+
+    @media (max-width: 1000px) {
+      .broadcast-quote-overlay { width: 90%; }
+      .broadcast-quote-author { font-size: 32px; letter-spacing: 0.04em; }
+      .broadcast-quote-text { font-size: 24px; }
+      .broadcast-quote-logo { width: 80px; right: 20px; top: -15px; }
+      .broadcast-quote-inner { padding: 14px 80px 14px 20px; min-height: 70px; }
+      .broadcast-quote-frame { padding: 6px; }
+      .broadcast-quote-frame::before,
+      .broadcast-quote-frame::after { width: 80px; height: 10px; }
     }
   </style>
 </head>
@@ -196,6 +689,7 @@
     let isTransitioning = false;
     let editingSlideId = null;
     let showSettings = false;
+    let showKeyboardHelp = false;
 
     // ============ WEBSOCKET SYNC ============
     let ws = null;
@@ -391,7 +885,8 @@
           kenBurnsDuration: globalSettings.defaultKenBurnsDuration,
           serverFilename: result.filename, // Track server filename for deletion
           fitMode: 'contain', // contain, cover, or fill
-          zoom: 100 // zoom percentage (100 = normal)
+          zoom: 100, // zoom percentage (100 = normal)
+          effect: 'none' // visual effect (none, bw, sepia, grain, halftone, film, etc.)
         };
 
         slides.push(slide);
@@ -406,15 +901,242 @@
       broadcast();
     }
 
-    // Navigation with transition effects - TRUE CROSSFADE
-    // Both old and new slides exist simultaneously during transition
+    // ============ URL IMAGE UPLOAD ============
+    let showUrlInput = false;
+    let urlInputLoading = false;
+    let imageSuggestions = [];
+    let suggestionsLoading = false;
+
+    async function handleUrlUpload(url) {
+      if (!url || urlInputLoading) return;
+
+      urlInputLoading = true;
+      renderFull();
+
+      try {
+        const response = await fetch('/api/upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        const slideIndex = slides.length;
+        const alternatingKenBurns = (slideIndex % 2 === 0) ? 'zoomIn' : 'zoomOut';
+
+        // Extract name from URL
+        const urlName = url.split('/').pop().split('?')[0] || 'URL Image';
+
+        const slide = {
+          id: Date.now() + Math.random(),
+          url: result.url,
+          type: 'image',
+          fileName: result.filename,
+          name: urlName.replace(/\.[^/.]+$/, "").substring(0, 30),
+          notes: '',
+          title: '',
+          subtitle: '',
+          quote: '',
+          quoteAuthor: '',
+          kenBurns: alternatingKenBurns,
+          kenBurnsDuration: globalSettings.defaultKenBurnsDuration,
+          serverFilename: result.filename,
+          fitMode: 'contain',
+          zoom: 100,
+          effect: 'none',
+          sourceUrl: url // Keep original URL for reference
+        };
+
+        slides.push(slide);
+        showUrlInput = false;
+        console.log(`[URL Upload] Added slide from: ${url}`);
+
+        syncWindowState();
+        renderFull();
+        broadcast();
+      } catch (error) {
+        console.error('[URL Upload] Error:', error);
+        alert('Failed to load image from URL: ' + error.message);
+      } finally {
+        urlInputLoading = false;
+        renderFull();
+      }
+    }
+
+    async function fetchImageSuggestions() {
+      suggestionsLoading = true;
+      renderFull();
+
+      try {
+        // Get ticker items from state API
+        const stateResponse = await fetch('/api/state');
+        const state = await stateResponse.json();
+        const tickerItems = state.tickerItems || [];
+
+        if (tickerItems.length === 0) {
+          imageSuggestions = [];
+          return;
+        }
+
+        const response = await fetch('/api/image-suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tickerItems })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          imageSuggestions = result.suggestions || [];
+          console.log(`[Suggestions] Got ${imageSuggestions.length} image suggestions`);
+        } else {
+          imageSuggestions = [];
+        }
+      } catch (error) {
+        console.error('[Suggestions] Error:', error);
+        imageSuggestions = [];
+      } finally {
+        suggestionsLoading = false;
+        renderFull();
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Show brief feedback
+        const btn = event.target.closest('button');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          setTimeout(() => { btn.innerHTML = originalText; }, 1000);
+        }
+      });
+    }
+
+    // ============ AUTO-POPULATE FROM TICKER ============
+    let autoPopulateLoading = false;
+
+    async function autoPopulateFromTicker() {
+      if (autoPopulateLoading) return;
+
+      autoPopulateLoading = true;
+      renderFull();
+
+      try {
+        // Get ticker items from state API
+        const stateResponse = await fetch('/api/state');
+        const state = await stateResponse.json();
+        const tickerItems = state.tickerItems || [];
+
+        if (tickerItems.length === 0 || (tickerItems.length === 1 && tickerItems[0].content === 'Welcome to the broadcast')) {
+          alert('No ticker content available. Load news first from the control panel.');
+          return;
+        }
+
+        console.log('[AutoPopulate] Getting suggestions for', tickerItems.length, 'ticker items...');
+
+        // Get auto-populate suggestions with direct image URLs (one per ticker item)
+        const response = await fetch('/api/auto-populate-slideshow', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tickerItems })
+        });
+
+        const result = await response.json();
+
+        if (!result.success || !result.slides || result.slides.length === 0) {
+          alert('Could not generate image suggestions. Try again.');
+          return;
+        }
+
+        console.log('[AutoPopulate] Got', result.slides.length, 'slide suggestions');
+        console.log('[AutoPopulate] Sources:', result.message);
+
+        // Add each slide to the slideshow (use URLs directly, don't save to disk)
+        for (const slideData of result.slides) {
+          try {
+            console.log(`[AutoPopulate] Processing: ${slideData.query} (source: ${slideData.source})`);
+
+            const slideIndex = slides.length;
+            const alternatingKenBurns = (slideIndex % 2 === 0) ? 'zoomIn' : 'zoomOut';
+
+            const slide = {
+              id: Date.now() + Math.random(),
+              url: slideData.imageUrl,  // Use external URL directly
+              type: 'image',
+              fileName: `auto-${Date.now()}.jpg`,
+              name: slideData.context || slideData.query.substring(0, 25),
+              notes: slideData.query,
+              title: '',
+              subtitle: '',
+              quote: '',
+              quoteAuthor: '',
+              kenBurns: alternatingKenBurns,
+              kenBurnsDuration: globalSettings.defaultKenBurnsDuration,
+              serverFilename: null,  // Not saved locally
+              fitMode: 'cover',
+              zoom: 100,
+              effect: 'none',
+              sourceQuery: slideData.query,
+              isExternal: true  // Flag to indicate external URL
+            };
+
+            slides.push(slide);
+            console.log('[AutoPopulate] Added slide:', slide.name);
+          } catch (err) {
+            console.error('[AutoPopulate] Failed to add slide:', err.message);
+          }
+
+          // Small delay between processing
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        console.log('[AutoPopulate] Complete. Total slides:', slides.length);
+        syncWindowState();
+        renderFull();
+        broadcast();
+
+      } catch (error) {
+        console.error('[AutoPopulate] Error:', error);
+        alert('Failed to auto-populate: ' + error.message);
+      } finally {
+        autoPopulateLoading = false;
+        renderFull();
+      }
+    }
+
+    // ============ GSAP-POWERED TRANSITIONS ============
+    // Professional broadcast-quality animations using GSAP
+
+    // GSAP easing presets for broadcast feel
+    // Custom cubic-bezier values for ultra-smooth cinematic transitions
+    const gsapEasings = {
+      // Buttery smooth crossfade - gentle acceleration/deceleration
+      smooth: 'power2.inOut',
+      // Snappy professional slide - quick start, smooth settle
+      snappy: 'expo.out',
+      // Premium broadcast standard - industry-standard TV/film feel
+      broadcast: 'power4.out',
+      // Cinematic reveal - dramatic opening
+      cinematic: 'circ.out',
+      // Ultra smooth for blur effects
+      blur: 'sine.inOut',
+      // Film-style wipe
+      wipe: 'power3.inOut'
+    };
+
+    // Navigation with GSAP-powered transitions
     function goToSlide(index) {
       if (isTransitioning || slides.length === 0 || index === currentIndex) return;
       isTransitioning = true;
 
       const transition = globalSettings.transition;
       const duration = globalSettings.transitionDuration;
-      const durationMs = duration * 1000;
 
       // Cut transition - instant switch, no animation
       if (transition === 'cut') {
@@ -426,9 +1148,6 @@
         return;
       }
 
-      // Set transition duration CSS variable
-      document.documentElement.style.setProperty('--transition-duration', duration + 's');
-
       const previewBox = document.getElementById('preview-box');
       if (!previewBox) {
         currentIndex = index;
@@ -439,8 +1158,6 @@
         return;
       }
 
-      // Get the OLD slide's current content
-      const oldSlide = slides[currentIndex];
       const newSlide = slides[index];
 
       // Wrap all existing content in an exit layer
@@ -448,7 +1165,6 @@
       exitLayer.id = 'exit-layer';
       exitLayer.className = 'absolute inset-0';
 
-      // Move all current children into the exit layer
       while (previewBox.firstChild) {
         exitLayer.appendChild(previewBox.firstChild);
       }
@@ -459,84 +1175,259 @@
       enterLayer.id = 'enter-layer';
       enterLayer.className = 'absolute inset-0 z-10';
       enterLayer.innerHTML = renderPreviewContent(newSlide);
-
-      // Set initial state for the entering layer
-      switch (transition) {
-        case 'fade':
-          enterLayer.style.opacity = '0';
-          break;
-        case 'blur':
-          enterLayer.style.opacity = '0';
-          enterLayer.style.filter = 'blur(30px)';
-          enterLayer.style.transform = 'scale(1.05)';
-          break;
-        case 'slideLeft':
-          enterLayer.style.transform = 'translateX(100%)';
-          break;
-        case 'slideRight':
-          enterLayer.style.transform = 'translateX(-100%)';
-          break;
-        case 'zoom':
-          enterLayer.style.opacity = '0';
-          enterLayer.style.transform = 'scale(1.5)';
-          break;
-        case 'whipPan':
-          enterLayer.style.opacity = '0';
-          enterLayer.style.transform = 'translateX(100%) skewX(5deg)';
-          enterLayer.style.filter = 'blur(10px)';
-          break;
-      }
-
-      // Add the entering layer
       previewBox.appendChild(enterLayer);
 
-      // Animate both layers
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Animate exit layer OUT
-          exitLayer.style.transition = `all ${duration}s ease-out`;
-          switch (transition) {
-            case 'fade':
-              exitLayer.style.opacity = '0';
-              break;
-            case 'blur':
-              exitLayer.style.opacity = '0';
-              exitLayer.style.filter = 'blur(30px)';
-              exitLayer.style.transform = 'scale(0.95)';
-              break;
-            case 'slideLeft':
-              exitLayer.style.transform = 'translateX(-100%)';
-              break;
-            case 'slideRight':
-              exitLayer.style.transform = 'translateX(100%)';
-              break;
-            case 'zoom':
-              exitLayer.style.opacity = '0';
-              exitLayer.style.transform = 'scale(0.5)';
-              break;
-            case 'whipPan':
-              exitLayer.style.opacity = '0';
-              exitLayer.style.transform = 'translateX(-100%) skewX(-5deg)';
-              exitLayer.style.filter = 'blur(10px)';
-              break;
-          }
-
-          // Animate enter layer IN
-          enterLayer.style.transition = `all ${duration}s ease-out`;
-          enterLayer.style.opacity = '1';
-          enterLayer.style.filter = 'none';
-          enterLayer.style.transform = 'none';
-        });
+      // Create GSAP timeline for synchronized animations
+      const tl = gsap.timeline({
+        onComplete: () => {
+          currentIndex = index;
+          syncWindowState();
+          renderFull();
+          broadcast();
+          isTransitioning = false;
+        }
       });
 
-      // After transition completes, clean up and update state
-      setTimeout(() => {
-        currentIndex = index;
-        syncWindowState();
-        renderFull();
-        broadcast();
-        isTransitioning = false;
-      }, durationMs + 50); // Small buffer for cleanup
+      // Apply transition-specific GSAP animations
+      switch (transition) {
+        case 'fade':
+          gsap.set(enterLayer, { opacity: 0, force3D: true });
+          tl.to(exitLayer, {
+            opacity: 0,
+            duration,
+            ease: gsapEasings.smooth,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            opacity: 1,
+            duration,
+            ease: gsapEasings.smooth,
+            force3D: true
+          }, 0);
+          break;
+
+        case 'blur':
+          gsap.set(enterLayer, { opacity: 0, filter: 'blur(40px)', force3D: true });
+          tl.to(exitLayer, {
+            opacity: 0,
+            filter: 'blur(40px)',
+            duration: duration * 0.9,
+            ease: gsapEasings.blur,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            opacity: 1,
+            filter: 'blur(0px)',
+            duration: duration * 0.9,
+            ease: gsapEasings.blur,
+            force3D: true
+          }, duration * 0.1);
+          break;
+
+        case 'slideLeft':
+          gsap.set(enterLayer, { x: '100%', force3D: true });
+          tl.to(exitLayer, {
+            x: '-100%',
+            duration,
+            ease: gsapEasings.snappy,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            x: '0%',
+            duration,
+            ease: gsapEasings.snappy,
+            force3D: true
+          }, 0);
+          break;
+
+        case 'slideRight':
+          gsap.set(enterLayer, { x: '-100%', force3D: true });
+          tl.to(exitLayer, {
+            x: '100%',
+            duration,
+            ease: gsapEasings.snappy,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            x: '0%',
+            duration,
+            ease: gsapEasings.snappy,
+            force3D: true
+          }, 0);
+          break;
+
+        case 'zoom':
+          gsap.set(enterLayer, { opacity: 0, scale: 0.85, force3D: true });
+          tl.to(exitLayer, {
+            opacity: 0,
+            scale: 1.15,
+            duration,
+            ease: gsapEasings.cinematic,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            opacity: 1,
+            scale: 1,
+            duration,
+            ease: gsapEasings.broadcast,
+            force3D: true
+          }, duration * 0.15);
+          break;
+
+        case 'whipPan':
+          // Enhanced whip pan with stronger motion blur effect
+          gsap.set(enterLayer, {
+            x: '100%',
+            skewX: 8,
+            filter: 'blur(20px)',
+            opacity: 0,
+            force3D: true
+          });
+          tl.to(exitLayer, {
+            x: '-100%',
+            skewX: -8,
+            filter: 'blur(20px)',
+            opacity: 0,
+            duration: duration * 0.6,
+            ease: 'power4.in',
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            x: '0%',
+            skewX: 0,
+            filter: 'blur(0px)',
+            opacity: 1,
+            duration: duration * 0.6,
+            ease: 'power4.out',
+            force3D: true
+          }, duration * 0.4);
+          break;
+
+        case 'glitch':
+          // Enhanced glitch with RGB split effect simulation
+          gsap.set(enterLayer, {
+            opacity: 0,
+            filter: 'saturate(2) hue-rotate(-90deg) brightness(1.2)',
+            force3D: true
+          });
+          tl.to(exitLayer, {
+            opacity: 0,
+            filter: 'saturate(3) hue-rotate(90deg) brightness(1.5)',
+            x: gsap.utils.random(-8, 8),
+            y: gsap.utils.random(-3, 3),
+            duration: duration * 0.25,
+            ease: 'steps(6)',
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            opacity: 0.5,
+            filter: 'saturate(2) hue-rotate(-45deg) brightness(1.3)',
+            x: gsap.utils.random(-5, 5),
+            duration: duration * 0.15,
+            ease: 'steps(4)',
+            force3D: true
+          }, duration * 0.2)
+          .to(enterLayer, {
+            opacity: 1,
+            filter: 'saturate(1) hue-rotate(0deg) brightness(1)',
+            x: 0,
+            y: 0,
+            duration: duration * 0.5,
+            ease: 'steps(8)',
+            force3D: true
+          }, duration * 0.4);
+          break;
+
+        case 'ripple':
+          // Smoother ripple with subtle scale and blur
+          gsap.set(enterLayer, { scale: 0.92, opacity: 0, filter: 'blur(20px)', force3D: true });
+          tl.to(exitLayer, {
+            scale: 1.08,
+            opacity: 0,
+            filter: 'blur(20px)',
+            duration: duration * 0.8,
+            ease: gsapEasings.blur,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            scale: 1,
+            opacity: 1,
+            filter: 'blur(0px)',
+            duration: duration * 0.8,
+            ease: gsapEasings.broadcast,
+            force3D: true
+          }, duration * 0.2);
+          break;
+
+        case 'shutter':
+          // Professional shutter/wipe effect
+          gsap.set(enterLayer, {
+            scaleX: 0,
+            opacity: 0,
+            transformOrigin: 'left center',
+            force3D: true
+          });
+          tl.to(exitLayer, {
+            scaleX: 0,
+            opacity: 0,
+            transformOrigin: 'right center',
+            duration,
+            ease: gsapEasings.wipe,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            scaleX: 1,
+            opacity: 1,
+            duration,
+            ease: gsapEasings.wipe,
+            force3D: true
+          }, 0);
+          break;
+
+        case 'flash':
+          // Enhanced flash with smoother brightness transitions
+          gsap.set(enterLayer, { opacity: 0, filter: 'brightness(1)', force3D: true });
+          tl.to(exitLayer, {
+            filter: 'brightness(4)',
+            duration: duration * 0.25,
+            ease: 'power3.in',
+            force3D: true
+          }, 0)
+          .to(exitLayer, {
+            opacity: 0,
+            duration: duration * 0.15,
+            force3D: true
+          }, duration * 0.25)
+          .to(enterLayer, {
+            opacity: 1,
+            filter: 'brightness(3)',
+            duration: duration * 0.15,
+            force3D: true
+          }, duration * 0.35)
+          .to(enterLayer, {
+            filter: 'brightness(1)',
+            duration: duration * 0.45,
+            ease: gsapEasings.broadcast,
+            force3D: true
+          }, duration * 0.5);
+          break;
+
+        default:
+          // Fallback to smooth fade with GPU acceleration
+          gsap.set(enterLayer, { opacity: 0, force3D: true });
+          tl.to(exitLayer, {
+            opacity: 0,
+            duration,
+            ease: gsapEasings.smooth,
+            force3D: true
+          }, 0)
+          .to(enterLayer, {
+            opacity: 1,
+            duration,
+            ease: gsapEasings.smooth,
+            force3D: true
+          }, 0);
+      }
     }
 
     function goNext() { if (slides.length) goToSlide((currentIndex + 1) % slides.length); }
@@ -580,6 +1471,147 @@
         renderFull();
         broadcast();
       }
+    }
+
+    function clearAllSlides() {
+      if (slides.length === 0) return;
+      if (!confirm(`Delete all ${slides.length} slides? This cannot be undone.`)) return;
+
+      // Delete all server files
+      slides.forEach(slide => {
+        if (slide.serverFilename) {
+          fetch(`/api/upload/${slide.serverFilename}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(result => console.log('[Delete] Server file deleted:', slide.serverFilename))
+            .catch(err => console.warn('[Delete] Failed to delete server file:', err));
+        }
+      });
+
+      // Clear the array while maintaining reference
+      slides.length = 0;
+      currentIndex = 0;
+      editingSlideId = null;
+      syncWindowState();
+      renderFull();
+      broadcast();
+    }
+
+    // Move slide from one index to another
+    function moveSlide(fromIndex, toIndex) {
+      if (toIndex < 0 || toIndex >= slides.length) return;
+      if (fromIndex === toIndex) return;
+
+      const [movedSlide] = slides.splice(fromIndex, 1);
+      slides.splice(toIndex, 0, movedSlide);
+
+      // Adjust current index if needed
+      if (currentIndex === fromIndex) {
+        currentIndex = toIndex;
+      } else if (fromIndex < currentIndex && toIndex >= currentIndex) {
+        currentIndex--;
+      } else if (fromIndex > currentIndex && toIndex <= currentIndex) {
+        currentIndex++;
+      }
+
+      syncWindowState();
+      renderFull();
+      broadcast();
+    }
+
+    // Drag and drop state
+    let draggedSlideId = null;
+    let dragOverIndex = null;
+
+    // Initialize drag and drop and button handlers after render
+    function initSlideDragDrop() {
+      const slideList = document.getElementById('slide-list');
+      if (!slideList) return;
+
+      // Handle delete button clicks
+      slideList.querySelectorAll('.delete-slide-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const slideIndex = parseInt(btn.dataset.slideIndex);
+          const slide = slides[slideIndex];
+          if (!slide) return;
+          const name = slide.name || `Slide ${slideIndex + 1}`;
+          if (confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) {
+            deleteSlide(slide.id);
+          }
+        };
+      });
+
+      // Handle move button clicks
+      slideList.querySelectorAll('.move-slide-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const fromIndex = parseInt(btn.dataset.from);
+          const toIndex = parseInt(btn.dataset.to);
+          moveSlide(fromIndex, toIndex);
+        };
+      });
+
+      const slideItems = slideList.querySelectorAll('.slide-item');
+
+      slideItems.forEach((item, index) => {
+        item.addEventListener('dragstart', (e) => {
+          draggedSlideId = item.dataset.slideId;
+          item.classList.add('opacity-50');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', index);
+        });
+
+        item.addEventListener('dragend', () => {
+          item.classList.remove('opacity-50');
+          draggedSlideId = null;
+          dragOverIndex = null;
+          // Remove all drag-over styles
+          slideItems.forEach(si => si.classList.remove('border-t-4', 'border-b-4', 'border-blue-500'));
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+
+          const rect = item.getBoundingClientRect();
+          const midY = rect.top + rect.height / 2;
+          const isAbove = e.clientY < midY;
+
+          // Remove previous highlights
+          slideItems.forEach(si => si.classList.remove('border-t-4', 'border-b-4', 'border-blue-500'));
+
+          // Add highlight
+          if (isAbove) {
+            item.classList.add('border-t-4', 'border-blue-500');
+            dragOverIndex = index;
+          } else {
+            item.classList.add('border-b-4', 'border-blue-500');
+            dragOverIndex = index + 1;
+          }
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('border-t-4', 'border-b-4', 'border-blue-500');
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          let toIndex = dragOverIndex;
+
+          // Adjust if moving down
+          if (fromIndex < toIndex) toIndex--;
+
+          if (fromIndex !== toIndex && toIndex >= 0) {
+            moveSlide(fromIndex, toIndex);
+          }
+
+          // Cleanup
+          slideItems.forEach(si => si.classList.remove('border-t-4', 'border-b-4', 'border-blue-500'));
+        });
+      });
     }
 
     let obsWindow = null;
@@ -632,10 +1664,45 @@
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+
+      // Navigation
+      if (e.key === 'ArrowRight' || e.key === 'l') { e.preventDefault(); goNext(); }
+      if (e.key === 'ArrowLeft' || e.key === 'h') { e.preventDefault(); goPrev(); }
       if (e.key === ' ') { e.preventDefault(); togglePlay(); }
-      if (e.key === 'Escape') { editingSlideId = null; renderFull(); }
+
+      // UI toggles
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (showKeyboardHelp) { showKeyboardHelp = false; renderFull(); }
+        else if (editingSlideId) { editingSlideId = null; renderFull(); }
+        else if (showSettings) { showSettings = false; renderFull(); }
+      }
+      if (e.key === '?') { e.preventDefault(); showKeyboardHelp = !showKeyboardHelp; renderFull(); }
+      if (e.key === 'e') { e.preventDefault(); editingSlideId = slides[currentIndex]?.id; renderFull(); }
+      if (e.key === 's' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); showSettings = !showSettings; renderFull(); }
+
+      // Quick navigation
+      if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
+      if (e.key === 'End') { e.preventDefault(); goToSlide(slides.length - 1); }
+
+      // Number keys for direct slide access (1-9)
+      if (/^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key) - 1;
+        if (idx < slides.length) { e.preventDefault(); goToSlide(idx); }
+      }
+
+      // Delete current slide (with confirm)
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (slides[currentIndex] && !e.target.closest('.editor-panel')) {
+          e.preventDefault();
+          if (confirm('Delete this slide?')) {
+            deleteSlide(slides[currentIndex].id);
+          }
+        }
+      }
+
+      // Open OBS window
+      if (e.key === 'o' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openOBSWindow(); }
     });
 
     // ============ RENDERING ============
@@ -658,21 +1725,25 @@
         fitClass = 'w-full h-full object-fill';
       }
 
-      // Zoom transform
+      // Zoom transform - applied to wrapper so it doesn't conflict with ken-burns
       const zoom = slide.zoom || 100;
-      const zoomStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+      const zoomWrapperStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+
+      // Visual effect class
+      const effect = slide.effect || 'none';
+      const effectClass = effect !== 'none' ? `effect-${effect}` : '';
 
       return `
         <div class="absolute inset-0 scale-150">
           ${slide.type === 'video' ?
-            `<video class="obs-bg-video w-full h-full object-cover blur-3xl opacity-50" src="${slide.url}" muted loop></video>` :
-            `<img src="${slide.url}" class="w-full h-full object-cover blur-3xl opacity-50">`}
+            `<video class="obs-bg-video w-full h-full object-cover blur-xl opacity-50" src="${slide.url}" muted loop></video>` :
+            `<img src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50">`}
         </div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
-        <div class="slide-container absolute inset-0 flex items-center justify-center overflow-hidden">
+        <div class="slide-container absolute inset-0 flex items-center justify-center overflow-hidden ${effectClass}" style="${zoomWrapperStyle}">
           ${slide.type === 'video' ?
-            `<video class="obs-main-video ${fitClass} ${kbClass}" src="${slide.url}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}" loop playsinline></video>` :
-            `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}">`}
+            `<video class="obs-main-video ${fitClass} ${kbClass}" src="${slide.url}" style="--kb-duration:${slide.kenBurnsDuration}s;" loop playsinline></video>` :
+            `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
         </div>
         <div class="obs-quote-container"></div>
         <div class="obs-title-container"></div>`;
@@ -728,9 +1799,9 @@
           return;
         }
 
-        // TRUE CROSSFADE: Both slides visible during transition
+        // TRUE CROSSFADE with GSAP: Both slides visible during transition
         obsIsTransitioning = true;
-        console.log('OBS: Starting transition', transition, 'duration:', duration);
+        console.log('OBS: Starting GSAP transition', transition, 'duration:', duration);
 
         // Get current wrapper
         const currentWrapper = document.getElementById('obs-slide-wrapper');
@@ -756,7 +1827,6 @@
         exitLayer.id = 'obs-exit-layer';
         exitLayer.className = 'absolute inset-0';
 
-        // Move all current children into the exit layer
         while (currentWrapper.firstChild) {
           exitLayer.appendChild(currentWrapper.firstChild);
         }
@@ -767,91 +1837,216 @@
         enterLayer.id = 'obs-enter-layer';
         enterLayer.className = 'absolute inset-0 z-10';
         enterLayer.innerHTML = generateOBSSlideHTML(slide);
-
-        console.log('OBS: Created exit and enter layers');
-
-        // Set initial state for the ENTIRE entering layer
-        switch (transition) {
-          case 'fade':
-            enterLayer.style.opacity = '0';
-            break;
-          case 'blur':
-            enterLayer.style.opacity = '0';
-            enterLayer.style.filter = 'blur(30px)';
-            enterLayer.style.transform = 'scale(1.05)';
-            break;
-          case 'slideLeft':
-            enterLayer.style.transform = 'translateX(100%)';
-            break;
-          case 'slideRight':
-            enterLayer.style.transform = 'translateX(-100%)';
-            break;
-          case 'zoom':
-            enterLayer.style.opacity = '0';
-            enterLayer.style.transform = 'scale(1.5)';
-            break;
-          case 'whipPan':
-            enterLayer.style.opacity = '0';
-            enterLayer.style.transform = 'translateX(100%) skewX(5deg)';
-            enterLayer.style.filter = 'blur(10px)';
-            break;
-        }
-
-        // Add entering layer
         currentWrapper.appendChild(enterLayer);
 
-        // Animate both layers
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            // Animate exit layer OUT
-            exitLayer.style.transition = `all ${duration}s ease-out`;
-            switch (transition) {
-              case 'fade':
-                exitLayer.style.opacity = '0';
-                break;
-              case 'blur':
-                exitLayer.style.opacity = '0';
-                exitLayer.style.filter = 'blur(30px)';
-                exitLayer.style.transform = 'scale(0.95)';
-                break;
-              case 'slideLeft':
-                exitLayer.style.transform = 'translateX(-100%)';
-                break;
-              case 'slideRight':
-                exitLayer.style.transform = 'translateX(100%)';
-                break;
-              case 'zoom':
-                exitLayer.style.opacity = '0';
-                exitLayer.style.transform = 'scale(0.5)';
-                break;
-              case 'whipPan':
-                exitLayer.style.opacity = '0';
-                exitLayer.style.transform = 'translateX(-100%) skewX(-5deg)';
-                exitLayer.style.filter = 'blur(10px)';
-                break;
-            }
+        console.log('OBS: Created exit and enter layers for GSAP');
 
-            // Animate enter layer IN
-            enterLayer.style.transition = `all ${duration}s ease-out`;
-            enterLayer.style.opacity = '1';
-            enterLayer.style.filter = 'none';
-            enterLayer.style.transform = 'none';
-          });
-        });
-
-        // Capture current slide for cleanup
+        // Capture slide ID for cleanup
         const newSlideId = slide.id;
 
-        // After transition, clean up
-        setTimeout(() => {
-          obsCurrentSlideId = newSlideId;
-          app.innerHTML = `
-            <div id="obs-slide-wrapper" class="w-screen h-screen bg-black overflow-hidden relative">
-              ${generateOBSSlideHTML(slides[currentIndex])}
-            </div>`;
-          updateOBSTextOverlays(slides[currentIndex]);
-          obsIsTransitioning = false;
-        }, duration * 1000 + 50);
+        // GSAP easing presets
+        // Enhanced easing presets for broadcast-quality OBS output
+        const easings = {
+          smooth: 'power2.inOut',
+          snappy: 'expo.out',
+          broadcast: 'power4.out',
+          cinematic: 'circ.out',
+          blur: 'sine.inOut',
+          wipe: 'power3.inOut'
+        };
+
+        // Create GSAP timeline
+        const tl = gsap.timeline({
+          onComplete: () => {
+            obsCurrentSlideId = newSlideId;
+            app.innerHTML = `
+              <div id="obs-slide-wrapper" class="w-screen h-screen bg-black overflow-hidden relative">
+                ${generateOBSSlideHTML(slides[currentIndex])}
+              </div>`;
+            updateOBSTextOverlays(slides[currentIndex]);
+            obsIsTransitioning = false;
+          }
+        });
+
+        // Apply GSAP animations based on transition type - GPU accelerated for OBS
+        switch (transition) {
+          case 'fade':
+            gsap.set(enterLayer, { opacity: 0, force3D: true });
+            tl.to(exitLayer, { opacity: 0, duration, ease: easings.smooth, force3D: true }, 0)
+              .to(enterLayer, { opacity: 1, duration, ease: easings.smooth, force3D: true }, 0);
+            break;
+
+          case 'blur':
+            gsap.set(enterLayer, { opacity: 0, filter: 'blur(40px)', force3D: true });
+            tl.to(exitLayer, {
+              opacity: 0,
+              filter: 'blur(40px)',
+              duration: duration * 0.9,
+              ease: easings.blur,
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              opacity: 1,
+              filter: 'blur(0px)',
+              duration: duration * 0.9,
+              ease: easings.blur,
+              force3D: true
+            }, duration * 0.1);
+            break;
+
+          case 'slideLeft':
+            gsap.set(enterLayer, { x: '100%', force3D: true });
+            tl.to(exitLayer, { x: '-100%', duration, ease: easings.snappy, force3D: true }, 0)
+              .to(enterLayer, { x: '0%', duration, ease: easings.snappy, force3D: true }, 0);
+            break;
+
+          case 'slideRight':
+            gsap.set(enterLayer, { x: '-100%', force3D: true });
+            tl.to(exitLayer, { x: '100%', duration, ease: easings.snappy, force3D: true }, 0)
+              .to(enterLayer, { x: '0%', duration, ease: easings.snappy, force3D: true }, 0);
+            break;
+
+          case 'zoom':
+            gsap.set(enterLayer, { opacity: 0, scale: 0.85, force3D: true });
+            tl.to(exitLayer, {
+              opacity: 0,
+              scale: 1.15,
+              duration,
+              ease: easings.cinematic,
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              opacity: 1,
+              scale: 1,
+              duration,
+              ease: easings.broadcast,
+              force3D: true
+            }, duration * 0.15);
+            break;
+
+          case 'whipPan':
+            gsap.set(enterLayer, { x: '100%', skewX: 8, filter: 'blur(20px)', opacity: 0, force3D: true });
+            tl.to(exitLayer, {
+              x: '-100%',
+              skewX: -8,
+              filter: 'blur(20px)',
+              opacity: 0,
+              duration: duration * 0.6,
+              ease: 'power4.in',
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              x: '0%',
+              skewX: 0,
+              filter: 'blur(0px)',
+              opacity: 1,
+              duration: duration * 0.6,
+              ease: 'power4.out',
+              force3D: true
+            }, duration * 0.4);
+            break;
+
+          case 'glitch':
+            gsap.set(enterLayer, { opacity: 0, filter: 'saturate(2) hue-rotate(-90deg) brightness(1.2)', force3D: true });
+            tl.to(exitLayer, {
+              opacity: 0,
+              filter: 'saturate(3) hue-rotate(90deg) brightness(1.5)',
+              x: gsap.utils.random(-8, 8),
+              y: gsap.utils.random(-3, 3),
+              duration: duration * 0.25,
+              ease: 'steps(6)',
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              opacity: 0.5,
+              filter: 'saturate(2) hue-rotate(-45deg) brightness(1.3)',
+              x: gsap.utils.random(-5, 5),
+              duration: duration * 0.15,
+              ease: 'steps(4)',
+              force3D: true
+            }, duration * 0.2)
+            .to(enterLayer, {
+              opacity: 1,
+              filter: 'saturate(1) hue-rotate(0deg) brightness(1)',
+              x: 0,
+              y: 0,
+              duration: duration * 0.5,
+              ease: 'steps(8)',
+              force3D: true
+            }, duration * 0.4);
+            break;
+
+          case 'ripple':
+            gsap.set(enterLayer, { scale: 0.92, opacity: 0, filter: 'blur(20px)', force3D: true });
+            tl.to(exitLayer, {
+              scale: 1.08,
+              opacity: 0,
+              filter: 'blur(20px)',
+              duration: duration * 0.8,
+              ease: easings.blur,
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              scale: 1,
+              opacity: 1,
+              filter: 'blur(0px)',
+              duration: duration * 0.8,
+              ease: easings.broadcast,
+              force3D: true
+            }, duration * 0.2);
+            break;
+
+          case 'shutter':
+            gsap.set(enterLayer, { scaleX: 0, opacity: 0, transformOrigin: 'left center', force3D: true });
+            tl.to(exitLayer, {
+              scaleX: 0,
+              opacity: 0,
+              transformOrigin: 'right center',
+              duration,
+              ease: easings.wipe,
+              force3D: true
+            }, 0)
+            .to(enterLayer, {
+              scaleX: 1,
+              opacity: 1,
+              duration,
+              ease: easings.wipe,
+              force3D: true
+            }, 0);
+            break;
+
+          case 'flash':
+            gsap.set(enterLayer, { opacity: 0, filter: 'brightness(1)', force3D: true });
+            tl.to(exitLayer, {
+              filter: 'brightness(4)',
+              duration: duration * 0.25,
+              ease: 'power3.in',
+              force3D: true
+            }, 0)
+            .to(exitLayer, {
+              opacity: 0,
+              duration: duration * 0.15,
+              force3D: true
+            }, duration * 0.25)
+            .to(enterLayer, {
+              opacity: 1,
+              filter: 'brightness(3)',
+              duration: duration * 0.15,
+              force3D: true
+            }, duration * 0.35)
+            .to(enterLayer, {
+              filter: 'brightness(1)',
+              duration: duration * 0.45,
+              ease: easings.broadcast,
+              force3D: true
+            }, duration * 0.5);
+            break;
+
+          default:
+            gsap.set(enterLayer, { opacity: 0, force3D: true });
+            tl.to(exitLayer, { opacity: 0, duration, ease: easings.smooth, force3D: true }, 0)
+              .to(enterLayer, { opacity: 1, duration, ease: easings.smooth, force3D: true }, 0);
+        }
 
       } else {
         // Just update text overlays without touching video
@@ -866,11 +2061,14 @@
 
       if (quoteContainer) {
         quoteContainer.innerHTML = slide.quote ? `
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center max-w-4xl px-8 z-10">
-            <div class="bg-black/60 backdrop-blur-md rounded-xl p-8 border border-white/10">
-              <p class="text-white text-3xl italic font-serif">"${slide.quote}"</p>
-              ${slide.quoteAuthor ? `<p class="text-white/70 text-xl mt-4">— ${slide.quoteAuthor}</p>` : ''}
+          <div class="broadcast-quote-overlay animate-in">
+            <div class="broadcast-quote-frame">
+              <div class="broadcast-quote-inner">
+                ${slide.quoteAuthor ? `<div class="broadcast-quote-author">${slide.quoteAuthor}</div>` : ''}
+                <div class="broadcast-quote-text">${slide.quote}</div>
+              </div>
             </div>
+            <img src="/uploads/manchester-united-devil-seeklogo.svg" alt="" class="broadcast-quote-logo" onerror="this.style.display='none'">
           </div>` : '';
       }
 
@@ -892,32 +2090,119 @@
       const app = document.getElementById('app');
       
       app.innerHTML = `
-        <div class="flex h-screen w-screen">
+        <div class="flex h-screen w-screen relative">
+          <!-- Mobile Menu Overlay -->
+          <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+
+          <!-- Mobile Menu Button -->
+          <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" class="fixed top-4 left-4 z-30 bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg border border-white/10 hidden items-center justify-center" style="display: none;">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
           <!-- Sidebar -->
           <div id="sidebar" class="w-64 bg-neutral-900 border-r border-white/10 flex flex-col">
             <div class="p-3 border-b border-white/10 flex items-center justify-between">
               <span class="text-white font-semibold text-sm">Slides (${slides.length})</span>
             </div>
-            <div class="flex-1 overflow-y-auto scrollbar p-2 space-y-2">
+            <div id="slide-list" class="flex-1 overflow-y-auto scrollbar p-2 space-y-2">
               ${slides.map((s, i) => `
-                <div onclick="goToSlide(${i})" class="cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${i === currentIndex ? 'border-red-500 ring-2 ring-red-500/30' : 'border-transparent hover:border-white/20'}">
-                  <div class="relative aspect-video bg-black">
-                    ${s.type === 'video' ? `<video src="${s.url}" class="w-full h-full object-cover"></video>` : `<img src="${s.url}" class="w-full h-full object-cover">`}
-                    <div class="absolute top-1 left-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">${i + 1}</div>
-                    ${s.type === 'video' ? `<div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">▶</div>` : ''}
+                <div class="slide-item group relative rounded-lg overflow-hidden border-2 transition-all ${i === currentIndex ? 'border-red-500 ring-2 ring-red-500/30' : 'border-transparent hover:border-white/20'}" data-slide-id="${s.id}" data-slide-index="${i}" draggable="true">
+                  <!-- Drag Handle -->
+                  <div class="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-black/60 to-transparent z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" onmousedown="event.stopPropagation()">
+                    <svg class="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8-14a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8-14a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
                   </div>
-                  <div class="p-2 bg-neutral-800/50" data-sidebar-info="${s.id}">
-                    <p class="text-white text-xs font-medium truncate">${s.name || 'Untitled'}</p>
-                    ${s.notes ? `<p class="text-gray-500 text-xs truncate">${s.notes}</p>` : ''}
+                  <!-- Delete Button -->
+                  <button class="delete-slide-btn absolute top-1 right-1 z-20 w-6 h-6 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" data-slide-id="${s.id}" data-slide-index="${i}" title="Delete slide">
+                    <svg class="w-3.5 h-3.5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                  <!-- Move Up/Down Buttons -->
+                  <div class="absolute bottom-1 right-1 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center ${i === 0 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i - 1}" title="Move up">
+                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                    </button>
+                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center ${i === slides.length - 1 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i + 1}" title="Move down">
+                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                  </div>
+                  <div onclick="goToSlide(${i}); closeMobileSidebar();" class="cursor-pointer">
+                    <div class="relative aspect-video bg-black">
+                      ${s.type === 'video' ? `<video src="${s.url}" class="w-full h-full object-cover"></video>` : `<img src="${s.url}" class="w-full h-full object-cover">`}
+                      <div class="absolute top-1 left-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">${i + 1}</div>
+                      ${s.type === 'video' ? `<div class="absolute bottom-1 left-1 bg-black/80 text-white text-xs px-1 rounded">▶</div>` : ''}
+                    </div>
+                    <div class="p-2 bg-neutral-800/50" data-sidebar-info="${s.id}">
+                      <p class="text-white text-xs font-medium truncate">${s.name || 'Untitled'}</p>
+                      ${s.notes ? `<p class="text-gray-500 text-xs truncate">${s.notes}</p>` : ''}
+                    </div>
                   </div>
                 </div>`).join('')}
-              <label class="flex items-center justify-center aspect-video border-2 border-dashed border-white/20 hover:border-white/40 rounded-lg cursor-pointer">
-                <div class="text-center">
-                  <svg class="w-8 h-8 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span class="text-gray-500 text-xs mt-1 block">Add Media</span>
+              <!-- Add Media Options -->
+              <div class="space-y-2">
+                <label class="flex items-center justify-center aspect-video border-2 border-dashed border-white/20 hover:border-white/40 rounded-lg cursor-pointer">
+                  <div class="text-center">
+                    <svg class="w-6 h-6 text-gray-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span class="text-gray-500 text-xs mt-1 block">Upload File</span>
+                  </div>
+                  <input type="file" multiple accept="image/*,video/*" class="hidden" onchange="handleFileUpload(event)">
+                </label>
+
+                <!-- URL Input Toggle -->
+                <button onclick="showUrlInput = !showUrlInput; renderFull();" class="w-full py-2 px-3 border border-dashed ${showUrlInput ? 'border-blue-500 bg-blue-500/10' : 'border-white/20 hover:border-white/40'} rounded-lg flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-white transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  Add from URL
+                </button>
+
+                ${showUrlInput ? `
+                <div class="bg-neutral-800 rounded-lg p-2 space-y-2">
+                  <input type="text" id="url-input" placeholder="https://example.com/image.jpg" class="w-full bg-neutral-700 border border-white/10 rounded px-2 py-1.5 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none">
+                  <button onclick="handleUrlUpload(document.getElementById('url-input').value)" ${urlInputLoading ? 'disabled' : ''} class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white text-xs py-1.5 rounded flex items-center justify-center gap-1">
+                    ${urlInputLoading ? '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Loading...' : 'Add Image'}
+                  </button>
+                </div>` : ''}
+
+                <!-- Image Suggestions -->
+                <button onclick="fetchImageSuggestions()" class="w-full py-2 px-3 border border-dashed border-white/20 hover:border-amber-500/50 rounded-lg flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-amber-400 transition">
+                  ${suggestionsLoading ? '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'}
+                  ${suggestionsLoading ? 'Getting Ideas...' : 'Suggest Images'}
+                </button>
+
+                <!-- Auto-populate Button -->
+                <button onclick="autoPopulateFromTicker()" ${autoPopulateLoading ? 'disabled' : ''} class="w-full py-2.5 px-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 disabled:from-red-800 disabled:to-red-900 rounded-lg flex items-center justify-center gap-2 text-xs text-white font-medium transition shadow-lg shadow-red-900/30">
+                  ${autoPopulateLoading ? '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'}
+                  ${autoPopulateLoading ? 'Adding Images...' : 'Auto-fill from Ticker'}
+                </button>
+              </div>
+
+              ${imageSuggestions.length > 0 ? `
+              <!-- Suggested Searches -->
+              <div class="mt-3 pt-3 border-t border-white/10">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs text-gray-400 font-medium">Suggested Searches</span>
+                  <button onclick="imageSuggestions = []; renderFull();" class="text-gray-500 hover:text-white text-xs">Clear</button>
                 </div>
-                <input type="file" multiple accept="image/*,video/*" class="hidden" onchange="handleFileUpload(event)">
-              </label>
+                <div class="space-y-1.5 max-h-48 overflow-y-auto scrollbar">
+                  ${imageSuggestions.map((s, i) => `
+                  <div class="group bg-neutral-800/50 hover:bg-neutral-800 rounded-lg p-2 transition">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-white text-xs font-medium truncate">${s.query}</p>
+                        <p class="text-gray-500 text-[10px] truncate">${s.context}</p>
+                      </div>
+                      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                        <button onclick="copyToClipboard('${s.query.replace(/'/g, "\\'")}')" class="p-1 hover:bg-white/10 rounded" title="Copy search">
+                          <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                        <a href="https://www.bing.com/images/search?q=${encodeURIComponent(s.query)}" target="_blank" class="p-1 hover:bg-white/10 rounded" title="Search Bing Images">
+                          <svg class="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l4-1.5v-5l7.5 4.5 2.5-1.5V6l-2.5 1.5L9 12V3H5z"/></svg>
+                        </a>
+                        <a href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(s.query)}&tbs=qdr:w" target="_blank" class="p-1 hover:bg-white/10 rounded" title="Search Google Images (past week)">
+                          <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                      </div>
+                    </div>
+                  </div>`).join('')}
+                </div>
+              </div>` : ''}
             </div>
             <div class="p-3 border-t border-white/10 space-y-2">
               <div id="obs-button-container">
@@ -930,6 +2215,11 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Settings
               </button>
+              ${slides.length > 0 ? `
+              <button onclick="clearAllSlides()" class="w-full bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white text-sm py-2 rounded-lg flex items-center justify-center gap-2 border border-red-500/30 hover:border-red-500 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Clear All (${slides.length})
+              </button>` : ''}
             </div>
           </div>
 
@@ -949,11 +2239,16 @@
           
           <!-- Editor Panel -->
           ${editSlide ? renderEditorPanel(editSlide) : ''}
-        </div>`;
+        </div>
+
+        <!-- Keyboard Shortcuts Modal -->
+        ${renderKeyboardHelpModal()}`;
 
       // Attach event listeners after render
       if (editSlide) attachEditorListeners(editSlide);
       if (showSettings) attachSettingsListeners();
+      // Use setTimeout to ensure DOM is fully updated
+      setTimeout(initSlideDragDrop, 0);
     }
 
     // Render just the preview content (called on input changes)
@@ -978,29 +2273,36 @@
         fitClass = 'w-full h-full object-fill';
       }
 
-      // Zoom transform
+      // Zoom transform - applied to wrapper so it doesn't conflict with ken-burns
       const zoom = slide.zoom || 100;
-      const zoomStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+      const zoomWrapperStyle = zoom !== 100 ? `transform: scale(${zoom / 100});` : '';
+
+      // Visual effect class
+      const effect = slide.effect || 'none';
+      const effectClass = effect !== 'none' ? `effect-${effect}` : '';
 
       return `
-        <div class="slide-container absolute inset-0">
+        <div class="slide-container absolute inset-0 ${effectClass}">
           <div class="absolute inset-0 scale-150">
             ${slide.type === 'video' ?
-              `<video id="bgVideo" src="${slide.url}" class="w-full h-full object-cover blur-3xl opacity-50" muted loop></video>` :
-              `<img src="${slide.url}" class="w-full h-full object-cover blur-3xl opacity-50">`}
+              `<video id="bgVideo" src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50" muted loop></video>` :
+              `<img src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50">`}
           </div>
           <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
-          <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+          <div class="absolute inset-0 flex items-center justify-center overflow-hidden" style="${zoomWrapperStyle}">
             ${slide.type === 'video' ?
-              `<video id="mainVideo" src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}" loop playsinline></video>` :
-              `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s; ${zoomStyle}">`}
+              `<video id="mainVideo" src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;" loop playsinline></video>` :
+              `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
           </div>
           ${slide.quote ? `
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center max-w-3xl px-6 z-10">
-              <div class="bg-black/60 backdrop-blur-md rounded-xl p-6 border border-white/10">
-                <p class="text-white text-xl italic font-serif">"${slide.quote}"</p>
-                ${slide.quoteAuthor ? `<p class="text-white/70 text-base mt-3">— ${slide.quoteAuthor}</p>` : ''}
+            <div class="broadcast-quote-overlay" style="transform: translateX(-50%) scale(0.75); bottom: 4%; left: 50%; width: 65%;">
+              <div class="broadcast-quote-frame">
+                <div class="broadcast-quote-inner" style="padding: 14px 70px 14px 18px; min-height: 60px;">
+                  ${slide.quoteAuthor ? `<div class="broadcast-quote-author" style="font-size: 20px; font-weight: 900; margin-bottom: 4px; letter-spacing: 0.06em;">${slide.quoteAuthor}</div>` : ''}
+                  <div class="broadcast-quote-text" style="font-size: 16px; font-weight: 700; letter-spacing: 0.02em;">${slide.quote}</div>
+                </div>
               </div>
+              <img src="/uploads/manchester-united-devil-seeklogo.svg" alt="" class="broadcast-quote-logo" style="width: 70px; right: 15px; top: -15px;" onerror="this.style.display='none'">
             </div>` : ''}
           ${slide.title || slide.subtitle ? `
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent px-6 pb-6 pt-14">
@@ -1026,13 +2328,17 @@
               ${isPlaying ? `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>` : `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
             </button>` : ''}
           <div class="w-px h-8 bg-white/20"></div>
-          <button onclick="editingSlideId = slides[currentIndex]?.id; renderFull();" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 ${editingSlideId ? 'ring-2 ring-blue-500' : ''}">
+          <button onclick="editingSlideId = slides[currentIndex]?.id; renderFull();" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 ${editingSlideId ? 'ring-2 ring-blue-500' : ''}" title="Edit slide (E)">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button onclick="showKeyboardHelp = true; renderFull();" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10" title="Keyboard shortcuts (?)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
         </div>
         <div class="flex justify-center gap-6 mt-3 text-xs text-gray-500">
           <span><kbd class="bg-neutral-800 px-1.5 py-0.5 rounded">←</kbd> <kbd class="bg-neutral-800 px-1.5 py-0.5 rounded">→</kbd> Navigate</span>
           ${slide?.type === 'video' ? `<span><kbd class="bg-neutral-800 px-2 py-0.5 rounded">Space</kbd> Play/Pause</span>` : ''}
+          <span><kbd class="bg-neutral-800 px-1.5 py-0.5 rounded">?</kbd> All shortcuts</span>
         </div>`;
     }
 
@@ -1041,9 +2347,29 @@
       if (navBar) navBar.innerHTML = renderNavBar(slides[currentIndex]);
     }
 
+    // Mobile sidebar toggle
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar && overlay) {
+        sidebar.classList.toggle('sidebar-open');
+        overlay.classList.toggle('visible');
+      }
+    }
+
+    // Close sidebar when clicking a slide on mobile
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar && overlay && window.innerWidth <= 768) {
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.remove('visible');
+      }
+    }
+
     function renderEditorPanel(slide) {
       return `
-        <div class="w-80 bg-neutral-900 border-l border-white/10 flex flex-col">
+        <div class="editor-panel w-80 bg-neutral-900 border-l border-white/10 flex flex-col">
           <div class="p-4 border-b border-white/10 flex items-center justify-between">
             <h3 class="text-white font-semibold">Edit Slide</h3>
             <button onclick="editingSlideId = null; renderFull();" class="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10">
@@ -1134,6 +2460,32 @@
 
             <hr class="border-white/10">
 
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Visual Effect</label>
+              <select id="ed-effect" class="w-full">
+                <option value="none" ${(slide.effect || 'none') === 'none' ? 'selected' : ''}>None</option>
+                <optgroup label="Color">
+                  <option value="bw" ${slide.effect === 'bw' ? 'selected' : ''}>Black & White</option>
+                  <option value="bw-contrast" ${slide.effect === 'bw-contrast' ? 'selected' : ''}>B&W High Contrast</option>
+                  <option value="sepia" ${slide.effect === 'sepia' ? 'selected' : ''}>Sepia</option>
+                  <option value="vintage" ${slide.effect === 'vintage' ? 'selected' : ''}>Vintage</option>
+                  <option value="faded" ${slide.effect === 'faded' ? 'selected' : ''}>Faded</option>
+                  <option value="contrast" ${slide.effect === 'contrast' ? 'selected' : ''}>High Contrast</option>
+                  <option value="cool" ${slide.effect === 'cool' ? 'selected' : ''}>Cool Tones</option>
+                  <option value="warm" ${slide.effect === 'warm' ? 'selected' : ''}>Warm Tones</option>
+                </optgroup>
+                <optgroup label="Film & Texture">
+                  <option value="grain" ${slide.effect === 'grain' ? 'selected' : ''}>Film Grain</option>
+                  <option value="halftone" ${slide.effect === 'halftone' ? 'selected' : ''}>Halftone</option>
+                  <option value="film" ${slide.effect === 'film' ? 'selected' : ''}>Film Look</option>
+                  <option value="cinematic" ${slide.effect === 'cinematic' ? 'selected' : ''}>Cinematic</option>
+                  <option value="vignette" ${slide.effect === 'vignette' ? 'selected' : ''}>Vignette</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <hr class="border-white/10">
+
             <button onclick="deleteSlide(${slide.id})" class="w-full bg-red-600/10 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-white rounded-lg py-2.5 flex items-center justify-center gap-2 transition text-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               Delete Slide
@@ -1145,7 +2497,7 @@
     // Render global settings panel
     function renderSettingsPanel() {
       return `
-        <div class="w-72 bg-neutral-900 border-r border-white/10 flex flex-col">
+        <div class="settings-panel w-72 bg-neutral-900 border-r border-white/10 flex flex-col">
           <div class="p-4 border-b border-white/10 flex items-center justify-between">
             <h3 class="text-white font-semibold">Settings</h3>
             <button onclick="showSettings = false; renderFull();" class="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10">
@@ -1155,10 +2507,22 @@
           <div class="flex-1 overflow-y-auto scrollbar p-4 space-y-5">
             <div>
               <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wide">Transition Effect</label>
-              <div class="grid grid-cols-2 gap-2" id="transition-buttons">
-                ${['cut', 'fade', 'blur', 'slideLeft', 'slideRight', 'zoom', 'whipPan'].map(t => `
-                  <button onclick="setTransition('${t}')" class="px-3 py-2 rounded-lg text-xs font-medium transition-all ${globalSettings.transition === t ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'}">
-                    ${t === 'cut' ? 'Cut' : t === 'fade' ? 'Fade' : t === 'blur' ? 'Blur' : t === 'slideLeft' ? 'Slide ←' : t === 'slideRight' ? 'Slide →' : t === 'zoom' ? 'Zoom' : 'Whip Pan'}
+              <div class="grid grid-cols-3 gap-2" id="transition-buttons">
+                ${[
+                  { id: 'cut', label: 'Cut' },
+                  { id: 'fade', label: 'Fade' },
+                  { id: 'blur', label: 'Blur' },
+                  { id: 'slideLeft', label: 'Slide ←' },
+                  { id: 'slideRight', label: 'Slide →' },
+                  { id: 'zoom', label: 'Zoom' },
+                  { id: 'whipPan', label: 'Whip Pan' },
+                  { id: 'glitch', label: 'Glitch' },
+                  { id: 'ripple', label: 'Ripple' },
+                  { id: 'shutter', label: 'Shutter' },
+                  { id: 'flash', label: 'Flash' }
+                ].map(t => `
+                  <button onclick="setTransition('${t.id}')" class="px-3 py-2 rounded-lg text-xs font-medium transition-all ${globalSettings.transition === t.id ? 'bg-red-600 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'}">
+                    ${t.label}
                   </button>
                 `).join('')}
               </div>
@@ -1190,6 +2554,66 @@
               <button onclick="previewTransition()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg">
                 Test Transition
               </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // Render keyboard shortcuts help modal
+    function renderKeyboardHelpModal() {
+      if (!showKeyboardHelp) return '';
+
+      const shortcuts = [
+        { category: 'Navigation', items: [
+          { keys: ['←', 'H'], desc: 'Previous slide' },
+          { keys: ['→', 'L'], desc: 'Next slide' },
+          { keys: ['Home'], desc: 'First slide' },
+          { keys: ['End'], desc: 'Last slide' },
+          { keys: ['1-9'], desc: 'Jump to slide 1-9' },
+        ]},
+        { category: 'Playback', items: [
+          { keys: ['Space'], desc: 'Play/Pause video' },
+        ]},
+        { category: 'Interface', items: [
+          { keys: ['E'], desc: 'Edit current slide' },
+          { keys: ['S'], desc: 'Toggle settings panel' },
+          { keys: ['O'], desc: 'Open OBS output window' },
+          { keys: ['?'], desc: 'Show/hide this help' },
+          { keys: ['Esc'], desc: 'Close panel/modal' },
+        ]},
+        { category: 'Actions', items: [
+          { keys: ['Delete'], desc: 'Delete current slide' },
+        ]},
+      ];
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onclick="if(event.target === this) { showKeyboardHelp = false; renderFull(); }">
+          <div class="bg-neutral-900 rounded-2xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="p-4 border-b border-white/10 flex items-center justify-between">
+              <h2 class="text-white font-semibold text-lg">Keyboard Shortcuts</h2>
+              <button onclick="showKeyboardHelp = false; renderFull();" class="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto scrollbar">
+              ${shortcuts.map(section => `
+                <div class="mb-4 last:mb-0">
+                  <h3 class="text-xs text-gray-500 uppercase tracking-wide mb-2">${section.category}</h3>
+                  <div class="space-y-1.5">
+                    ${section.items.map(item => `
+                      <div class="flex items-center justify-between py-1">
+                        <span class="text-gray-300 text-sm">${item.desc}</span>
+                        <div class="flex gap-1">
+                          ${item.keys.map(k => `<kbd class="bg-neutral-800 px-2 py-1 rounded text-xs text-white border border-white/10 font-mono">${k}</kbd>`).join('<span class="text-gray-600 text-xs">or</span>')}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="p-3 bg-neutral-800/50 border-t border-white/10">
+              <p class="text-center text-gray-500 text-xs">Press <kbd class="bg-neutral-700 px-1.5 py-0.5 rounded text-white">?</kbd> anytime to toggle this help</p>
             </div>
           </div>
         </div>`;
@@ -1276,6 +2700,17 @@
         zoomSlider.addEventListener('input', (e) => {
           slide.zoom = parseInt(e.target.value);
           if (zoomLabel) zoomLabel.textContent = slide.zoom + '%';
+          updatePreviewOnly();
+          syncWindowState();
+          broadcast();
+        });
+      }
+
+      // Visual effect selector
+      const effectSelect = document.getElementById('ed-effect');
+      if (effectSelect) {
+        effectSelect.addEventListener('change', (e) => {
+          slide.effect = e.target.value;
           updatePreviewOnly();
           syncWindowState();
           broadcast();
