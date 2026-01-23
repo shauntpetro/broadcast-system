@@ -3,23 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>OBS Slideshow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <link rel="stylesheet" href="css/theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; background: #0a0a0a; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
-    
+
+    /* Focus visible styles for accessibility */
+    button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--focus-ring, #ef4444);
+      outline-offset: 2px;
+    }
+
     @keyframes ken-burns-zoom-in { from { transform: scale(1); } to { transform: scale(1.12); } }
     @keyframes ken-burns-zoom-out { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes ken-burns-pan-left { from { transform: translateX(3%) scale(1.08); } to { transform: translateX(-3%) scale(1.08); } }
     @keyframes ken-burns-pan-right { from { transform: translateX(-3%) scale(1.08); } to { transform: translateX(3%) scale(1.08); } }
-    
+
     .kb-zoom-in { animation: ken-burns-zoom-in var(--kb-duration, 30s) linear forwards; }
     .kb-zoom-out { animation: ken-burns-zoom-out var(--kb-duration, 30s) linear forwards; }
     .kb-pan-left { animation: ken-burns-pan-left var(--kb-duration, 30s) linear forwards; }
     .kb-pan-right { animation: ken-burns-pan-right var(--kb-duration, 30s) linear forwards; }
+
+    /* Reduced motion support - honor user preferences */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .kb-zoom-in, .kb-zoom-out, .kb-pan-left, .kb-pan-right {
+        animation: none !important;
+      }
+    }
     
     /* Transition system - duration controlled by CSS variable */
     .slide-container {
@@ -466,198 +489,221 @@
       cursor: pointer;
     }
 
-    /* ===== BROADCAST QUOTE OVERLAY ===== */
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap');
+    /* ===== BROADCAST QUOTE OVERLAY - Sleek Semeex Flat Design ===== */
 
     .broadcast-quote-overlay {
       position: absolute;
-      bottom: 6%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
+      inset: 0;
       z-index: 20;
-      /* Outer glow effect */
-      filter: drop-shadow(0 0 25px rgba(0,0,0,0.6)) drop-shadow(0 0 50px rgba(0,0,0,0.4));
-    }
-
-    .broadcast-quote-frame {
-      position: relative;
-      /* Chrome/silver metallic frame */
-      background: linear-gradient(180deg,
-        #e8e8e8 0%,
-        #d0d0d0 8%,
-        #b8b8b8 15%,
-        #c8c8c8 50%,
-        #a0a0a0 85%,
-        #b0b0b0 92%,
-        #c0c0c0 100%
-      );
-      padding: 8px;
-      /* Chamfered corners - left side straight, right side angled */
-      clip-path: polygon(
-        0 0,
-        calc(100% - 40px) 0,
-        100% 40px,
-        100% 100%,
-        0 100%
-      );
-      box-shadow:
-        0 12px 40px rgba(0,0,0,0.7),
-        0 6px 20px rgba(0,0,0,0.5),
-        0 0 60px rgba(0,0,0,0.3),
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        inset 0 -1px 0 rgba(0,0,0,0.2);
-      transform: perspective(1000px) rotateY(-2deg) rotateX(1deg);
-      transform-origin: left center;
-    }
-
-    /* Yellow accent bar - bottom left extending outward diagonally */
-    .broadcast-quote-frame::before {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: -60px;
-      width: 120px;
-      height: 14px;
-      background: linear-gradient(90deg,
-        #d4c200 0%,
-        #ffea00 30%,
-        #fff200 60%,
-        #ffea00 100%
-      );
-      transform: skewX(-45deg);
-      z-index: 20;
-      box-shadow:
-        0 2px 10px rgba(255,234,0,0.7),
-        0 0 20px rgba(255,234,0,0.4);
-    }
-
-    /* Yellow accent bar - top right extending outward diagonally */
-    .broadcast-quote-frame::after {
-      content: '';
-      position: absolute;
-      top: -6px;
-      right: -20px;
-      width: 120px;
-      height: 14px;
-      background: linear-gradient(90deg,
-        #ffea00 0%,
-        #fff200 40%,
-        #ffea00 70%,
-        #d4c200 100%
-      );
-      transform: skewX(-45deg);
-      z-index: 20;
-      box-shadow:
-        0 2px 10px rgba(255,234,0,0.7),
-        0 0 20px rgba(255,234,0,0.4);
-    }
-
-    .broadcast-quote-inner {
-      /* Dark interior with subtle gradient */
-      background: linear-gradient(135deg,
-        #1a1a1a 0%,
-        #0f0f0f 50%,
-        #141414 100%
-      );
-      padding: 20px 120px 20px 28px;
-      position: relative;
-      min-height: 100px;
-      /* Match the outer clip-path shape */
-      clip-path: polygon(
-        0 0,
-        calc(100% - 36px) 0,
-        100% 36px,
-        100% 100%,
-        0 100%
-      );
       overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 4% 3%;
     }
 
-    .broadcast-quote-author {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 900; /* Black */
-      font-size: 48px;
-      color: #ffffff;
-      text-transform: uppercase;
-      letter-spacing: 0.08em; /* +20 tracking */
-      margin-bottom: 12px;
-      text-shadow:
-        2px 2px 4px rgba(0,0,0,0.8),
-        0 0 20px rgba(0,0,0,0.5);
+    /* Main panel wrapper - positions logo floating above */
+    .broadcast-quote-panel {
       position: relative;
-      z-index: 5;
+      width: 85%;
+      max-width: 1100px;
     }
 
-    .broadcast-quote-text {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700; /* Bold */
-      font-size: 36px;
-      color: #c0c0c0;
-      font-style: normal;
-      line-height: 1.35;
-      letter-spacing: 0.02em; /* Slight tracking */
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    /* Super blurry drop shadow behind panel */
+    .broadcast-quote-panel::before {
+      content: '';
+      position: absolute;
+      inset: 15px 30px -30px 30px;
+      background: rgba(0, 0, 0, 0.7);
+      filter: blur(50px);
+      border-radius: 12px;
+      z-index: -1;
+    }
+
+    /* Inner panel with content */
+    .broadcast-quote-panel-inner {
       position: relative;
-      z-index: 5;
-      max-width: 100%;
+      display: flex;
+      align-items: center;
+      gap: clamp(20px, 3vw, 40px);
+      background: linear-gradient(135deg, #1a1a1a 0%, #111111 100%);
+      padding: clamp(20px, 2.5vw, 36px) clamp(24px, 3vw, 48px);
+      padding-left: clamp(32px, 4vw, 56px);
+      box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.8),
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        0 5px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    /* Man United Devil Logo - large, overlapping the top of frame */
+    /* Yellow accent bar on left - Semeex signature */
+    .broadcast-quote-accent {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: linear-gradient(180deg,
+        #F7DC14 0%,
+        #F0D000 30%,
+        #E8C412 70%,
+        #D4AF0A 100%);
+      box-shadow:
+        2px 0 12px rgba(240, 208, 0, 0.4),
+        4px 0 24px rgba(240, 208, 0, 0.2);
+    }
+
+    /* Devil logo - floating on top of panel */
     .broadcast-quote-logo {
       position: absolute;
-      right: 40px;
-      top: -30px;
-      transform: none;
-      width: 140px;
+      left: clamp(20px, 3vw, 40px);
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(80px, 10vw, 130px);
       height: auto;
-      filter:
-        drop-shadow(0 4px 20px rgba(218,2,14,0.5))
-        drop-shadow(3px 6px 12px rgba(0,0,0,0.7));
-      z-index: 25;
-      opacity: 1;
+      z-index: 10;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.7));
     }
 
-    /* No gradient overlay needed - using PNG background */
+    /* Content area - author and quote stacked */
+    .broadcast-quote-content {
+      flex: 1;
+      min-width: 0;
+      margin-left: clamp(60px, 8vw, 100px);
+    }
 
-    /* Animation for quote entry */
-    @keyframes quote-slide-in {
-      from {
+    /* Author name - Montserrat Black, White text */
+    .broadcast-quote-author {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(22px, 3.2vw, 48px);
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: clamp(8px, 1.2vw, 16px);
+      color: #FFFFFF;
+    }
+
+    /* Quote text - Montserrat SemiBold, slightly muted white */
+    .broadcast-quote-text {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: clamp(14px, 1.8vw, 26px);
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    /* Legacy classes - hidden but kept for backwards compatibility */
+    .broadcast-quote-shadow-wrapper,
+    .broadcast-quote-shadow-red,
+    .broadcast-quote-shadow-yellow,
+    .broadcast-quote-shadow-silver,
+    .broadcast-quote-frame,
+    .broadcast-quote-background,
+    .broadcast-quote-inner,
+    .broadcast-quote-accent-top,
+    .broadcast-quote-accent-bottom {
+      display: none;
+    }
+
+    /* ========== ENTRANCE ANIMATIONS ========== */
+
+    @keyframes quote-panel-enter {
+      0% {
         opacity: 0;
-        transform: translateX(-100px);
-        filter: blur(4px);
+        transform: translateY(40px);
       }
-      to {
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes quote-accent-grow {
+      0% {
+        transform: scaleY(0);
+        opacity: 0;
+      }
+      100% {
+        transform: scaleY(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes quote-logo-enter {
+      0% {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-30px) scale(0.7);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0) scale(1);
+      }
+    }
+
+    @keyframes quote-content-enter {
+      0% {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      100% {
         opacity: 1;
         transform: translateX(0);
-        filter: blur(0);
       }
     }
 
-    .broadcast-quote-overlay.animate-in {
-      animation: quote-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Animation triggers - elements start hidden, animate in */
+    .broadcast-quote-overlay.animate-in .broadcast-quote-panel {
+      animation: quote-panel-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    /* Responsive scaling */
+    .broadcast-quote-overlay.animate-in .broadcast-quote-accent {
+      animation: quote-accent-grow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+      transform-origin: top center;
+    }
+
+    .broadcast-quote-overlay.animate-in .broadcast-quote-logo {
+      animation: quote-logo-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+    }
+
+    .broadcast-quote-overlay.animate-in .broadcast-quote-content {
+      animation: quote-content-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+    }
+
+    /* ========== RESPONSIVE ADJUSTMENTS ========== */
+
     @media (max-width: 1400px) {
-      .broadcast-quote-overlay { width: 85%; }
-      .broadcast-quote-author { font-size: 40px; letter-spacing: 0.06em; }
-      .broadcast-quote-text { font-size: 30px; }
-      .broadcast-quote-logo { width: 110px; right: 30px; top: -20px; }
-      .broadcast-quote-inner { padding: 18px 100px 18px 24px; min-height: 85px; }
-      .broadcast-quote-frame::before,
-      .broadcast-quote-frame::after { width: 100px; height: 12px; }
+      .broadcast-quote-panel { width: 90%; }
+      .broadcast-quote-logo { width: clamp(70px, 9vw, 110px); }
     }
 
     @media (max-width: 1000px) {
-      .broadcast-quote-overlay { width: 90%; }
-      .broadcast-quote-author { font-size: 32px; letter-spacing: 0.04em; }
-      .broadcast-quote-text { font-size: 24px; }
-      .broadcast-quote-logo { width: 80px; right: 20px; top: -15px; }
-      .broadcast-quote-inner { padding: 14px 80px 14px 20px; min-height: 70px; }
-      .broadcast-quote-frame { padding: 6px; }
-      .broadcast-quote-frame::before,
-      .broadcast-quote-frame::after { width: 80px; height: 10px; }
+      .broadcast-quote-panel { width: 95%; }
+      .broadcast-quote-panel-inner {
+        padding: clamp(16px, 2vw, 28px) clamp(20px, 2.5vw, 36px);
+        padding-left: clamp(24px, 3vw, 44px);
+      }
+      .broadcast-quote-logo {
+        width: clamp(60px, 8vw, 90px);
+        left: clamp(15px, 2vw, 30px);
+      }
+      .broadcast-quote-content { margin-left: clamp(50px, 7vw, 80px); }
+      .broadcast-quote-accent { width: 5px; }
+    }
+
+    @media (max-width: 768px) {
+      .broadcast-quote-overlay { padding: 3% 2%; }
+      .broadcast-quote-panel { width: 98%; }
+      .broadcast-quote-panel-inner {
+        padding: clamp(14px, 2.5vw, 24px) clamp(16px, 3vw, 28px);
+        padding-left: clamp(20px, 2.5vw, 36px);
+      }
+      .broadcast-quote-logo {
+        width: clamp(50px, 10vw, 70px);
+        left: clamp(10px, 1.5vw, 20px);
+      }
+      .broadcast-quote-content { margin-left: clamp(40px, 8vw, 60px); }
+      .broadcast-quote-accent { width: 4px; }
     }
   </style>
 </head>
@@ -1040,7 +1086,7 @@
 
         console.log('[AutoPopulate] Getting suggestions for', tickerItems.length, 'ticker items...');
 
-        // Get auto-populate suggestions with direct image URLs (one per ticker item)
+        // Get auto-populate suggestions with multiple image options per ticker item
         const response = await fetch('/api/auto-populate-slideshow', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1057,17 +1103,17 @@
         console.log('[AutoPopulate] Got', result.slides.length, 'slide suggestions');
         console.log('[AutoPopulate] Sources:', result.message);
 
-        // Add each slide to the slideshow (use URLs directly, don't save to disk)
+        // Add each slide to the slideshow with image options
         for (const slideData of result.slides) {
           try {
-            console.log(`[AutoPopulate] Processing: ${slideData.query} (source: ${slideData.source})`);
+            console.log(`[AutoPopulate] Processing: ${slideData.query} (${slideData.imageOptions?.length || 1} options)`);
 
             const slideIndex = slides.length;
             const alternatingKenBurns = (slideIndex % 2 === 0) ? 'zoomIn' : 'zoomOut';
 
             const slide = {
               id: Date.now() + Math.random(),
-              url: slideData.imageUrl,  // Use external URL directly
+              url: slideData.imageUrl,  // Use primary image URL
               type: 'image',
               fileName: `auto-${Date.now()}.jpg`,
               name: slideData.context || slideData.query.substring(0, 25),
@@ -1079,15 +1125,19 @@
               kenBurns: alternatingKenBurns,
               kenBurnsDuration: globalSettings.defaultKenBurnsDuration,
               serverFilename: null,  // Not saved locally
-              fitMode: 'cover',
+              fitMode: 'contain',
               zoom: 100,
               effect: 'none',
               sourceQuery: slideData.query,
-              isExternal: true  // Flag to indicate external URL
+              isExternal: true,  // Flag to indicate external URL
+              // Store image options for selection
+              imageOptions: slideData.imageOptions || [{ url: slideData.imageUrl, source: slideData.source, index: 0 }],
+              selectedOptionIndex: 0,
+              searchLinks: slideData.searchLinks
             };
 
             slides.push(slide);
-            console.log('[AutoPopulate] Added slide:', slide.name);
+            console.log('[AutoPopulate] Added slide:', slide.name, 'with', slide.imageOptions.length, 'options');
           } catch (err) {
             console.error('[AutoPopulate] Failed to add slide:', err.message);
           }
@@ -1107,6 +1157,24 @@
       } finally {
         autoPopulateLoading = false;
         renderFull();
+      }
+    }
+
+    // Select a different image option for a slide (also selects the slide)
+    function selectSlideImageOption(slideId, optionIndex) {
+      const slideIndex = slides.findIndex(s => s.id === slideId);
+      const slide = slides[slideIndex];
+      if (slide && slide.imageOptions && slide.imageOptions[optionIndex]) {
+        slide.url = slide.imageOptions[optionIndex].url;
+        slide.selectedOptionIndex = optionIndex;
+        // Also select this slide if not already selected
+        if (slideIndex !== -1 && slideIndex !== currentIndex) {
+          currentIndex = slideIndex;
+        }
+        console.log('[Slide] Selected option', optionIndex, 'for slide', slide.name);
+        syncWindowState();
+        renderFull();
+        broadcast();
       }
     }
 
@@ -1737,13 +1805,13 @@
         <div class="absolute inset-0 scale-150">
           ${slide.type === 'video' ?
             `<video class="obs-bg-video w-full h-full object-cover blur-xl opacity-50" src="${slide.url}" muted loop></video>` :
-            `<img src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50">`}
+            `<img src="${slide.url}" referrerpolicy="no-referrer" class="w-full h-full object-cover blur-xl opacity-50">`}
         </div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
         <div class="slide-container absolute inset-0 flex items-center justify-center overflow-hidden ${effectClass}" style="${zoomWrapperStyle}">
           ${slide.type === 'video' ?
             `<video class="obs-main-video ${fitClass} ${kbClass}" src="${slide.url}" style="--kb-duration:${slide.kenBurnsDuration}s;" loop playsinline></video>` :
-            `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
+            `<img src="${slide.url}" referrerpolicy="no-referrer" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
         </div>
         <div class="obs-quote-container"></div>
         <div class="obs-title-container"></div>`;
@@ -2062,13 +2130,21 @@
       if (quoteContainer) {
         quoteContainer.innerHTML = slide.quote ? `
           <div class="broadcast-quote-overlay animate-in">
-            <div class="broadcast-quote-frame">
-              <div class="broadcast-quote-inner">
-                ${slide.quoteAuthor ? `<div class="broadcast-quote-author">${slide.quoteAuthor}</div>` : ''}
-                <div class="broadcast-quote-text">${slide.quote}</div>
+            <!-- Sleek Semeex flat panel with floating logo -->
+            <div class="broadcast-quote-panel">
+              <!-- Devil logo floating on top -->
+              <img src="/public/logos/quote-devil-logo.png" alt="" class="broadcast-quote-logo" onerror="this.style.display='none'">
+              <!-- Inner panel with content -->
+              <div class="broadcast-quote-panel-inner">
+                <!-- Yellow accent bar -->
+                <div class="broadcast-quote-accent"></div>
+                <!-- Content -->
+                <div class="broadcast-quote-content">
+                  ${slide.quoteAuthor ? `<div class="broadcast-quote-author">${slide.quoteAuthor}</div>` : ''}
+                  <div class="broadcast-quote-text">"${slide.quote}"</div>
+                </div>
               </div>
             </div>
-            <img src="/uploads/manchester-united-devil-seeklogo.svg" alt="" class="broadcast-quote-logo" onerror="this.style.display='none'">
           </div>` : '';
       }
 
@@ -2095,8 +2171,8 @@
           <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
           <!-- Mobile Menu Button -->
-          <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" class="fixed top-4 left-4 z-30 bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg border border-white/10 hidden items-center justify-center" style="display: none;">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="Open menu" class="fixed top-4 left-4 z-30 bg-neutral-800 hover:bg-neutral-700 text-white p-2 rounded-lg border border-white/10 hidden items-center justify-center focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none" style="display: none;">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
 
           <!-- Sidebar -->
@@ -2112,29 +2188,47 @@
                     <svg class="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8-14a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm8-14a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm2 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
                   </div>
                   <!-- Delete Button -->
-                  <button class="delete-slide-btn absolute top-1 right-1 z-20 w-6 h-6 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" data-slide-id="${s.id}" data-slide-index="${i}" title="Delete slide">
-                    <svg class="w-3.5 h-3.5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <button class="delete-slide-btn absolute top-1 right-1 z-20 w-6 h-6 bg-red-600 hover:bg-red-500 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none" data-slide-id="${s.id}" data-slide-index="${i}" aria-label="Delete slide ${i + 1}">
+                    <svg class="w-3.5 h-3.5 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                   <!-- Move Up/Down Buttons -->
-                  <div class="absolute bottom-1 right-1 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center ${i === 0 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i - 1}" title="Move up">
-                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                  <div class="absolute bottom-1 right-1 z-20 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${i === 0 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i - 1}" aria-label="Move slide ${i + 1} up" ${i === 0 ? 'disabled' : ''}>
+                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
                     </button>
-                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center ${i === slides.length - 1 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i + 1}" title="Move down">
-                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <button class="move-slide-btn w-5 h-5 bg-black/80 hover:bg-white/20 rounded flex items-center justify-center focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${i === slides.length - 1 ? 'opacity-30 pointer-events-none' : ''}" data-from="${i}" data-to="${i + 1}" aria-label="Move slide ${i + 1} down" ${i === slides.length - 1 ? 'disabled' : ''}>
+                      <svg class="w-3 h-3 text-white pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                   </div>
                   <div onclick="goToSlide(${i}); closeMobileSidebar();" class="cursor-pointer">
                     <div class="relative aspect-video bg-black">
-                      ${s.type === 'video' ? `<video src="${s.url}" class="w-full h-full object-cover"></video>` : `<img src="${s.url}" class="w-full h-full object-cover">`}
+                      ${s.type === 'video' ? `<video src="${s.url}" class="w-full h-full object-cover"></video>` : `<img src="${s.url}" referrerpolicy="no-referrer" class="w-full h-full object-cover">`}
                       <div class="absolute top-1 left-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">${i + 1}</div>
                       ${s.type === 'video' ? `<div class="absolute bottom-1 left-1 bg-black/80 text-white text-xs px-1 rounded">▶</div>` : ''}
+                      ${s.imageOptions && s.imageOptions.length > 1 ? `<div class="absolute bottom-1 left-1 bg-blue-600/90 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>${s.imageOptions.length}</div>` : ''}
                     </div>
                     <div class="p-2 bg-neutral-800/50" data-sidebar-info="${s.id}">
                       <p class="text-white text-xs font-medium truncate">${s.name || 'Untitled'}</p>
                       ${s.notes ? `<p class="text-gray-500 text-xs truncate">${s.notes}</p>` : ''}
                     </div>
                   </div>
+                  ${s.imageOptions && s.imageOptions.length > 1 ? `
+                  <!-- Image Options Selector - 6 options in 2 rows of 3 -->
+                  <div class="p-1.5 bg-neutral-900 border-t border-white/5">
+                    <div class="grid grid-cols-3 gap-1">
+                      ${s.imageOptions.map((opt, optIdx) => `
+                        <button onclick="event.stopPropagation(); selectSlideImageOption(${s.id}, ${optIdx})" class="aspect-video rounded overflow-hidden border-2 transition-all ${optIdx === (s.selectedOptionIndex || 0) ? 'border-blue-500 ring-1 ring-blue-500/50' : 'border-transparent hover:border-white/30 opacity-60 hover:opacity-100'}">
+                          <img src="${opt.url}" referrerpolicy="no-referrer" crossorigin="anonymous" class="w-full h-full object-cover" onerror="this.removeAttribute('crossorigin'); this.src=this.src;" onload="this.dataset.loaded='true'" loading="lazy">
+                        </button>
+                      `).join('')}
+                    </div>
+                    ${s.searchLinks ? `
+                    <a href="${s.searchLinks.google}" target="_blank" onclick="event.stopPropagation();" class="mt-1 w-full py-1 rounded bg-neutral-800 hover:bg-neutral-700 border border-white/10 flex items-center justify-center gap-1 transition text-[10px] text-gray-400 hover:text-white">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                      More images
+                    </a>
+                    ` : ''}
+                  </div>` : ''}
                 </div>`).join('')}
               <!-- Add Media Options -->
               <div class="space-y-2">
@@ -2286,23 +2380,26 @@
           <div class="absolute inset-0 scale-150">
             ${slide.type === 'video' ?
               `<video id="bgVideo" src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50" muted loop></video>` :
-              `<img src="${slide.url}" class="w-full h-full object-cover blur-xl opacity-50">`}
+              `<img src="${slide.url}" referrerpolicy="no-referrer" class="w-full h-full object-cover blur-xl opacity-50">`}
           </div>
           <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"></div>
           <div class="absolute inset-0 flex items-center justify-center overflow-hidden" style="${zoomWrapperStyle}">
             ${slide.type === 'video' ?
               `<video id="mainVideo" src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;" loop playsinline></video>` :
-              `<img src="${slide.url}" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
+              `<img src="${slide.url}" referrerpolicy="no-referrer" class="${fitClass} ${kbClass}" style="--kb-duration:${slide.kenBurnsDuration}s;">`}
           </div>
           ${slide.quote ? `
-            <div class="broadcast-quote-overlay" style="transform: translateX(-50%) scale(0.75); bottom: 4%; left: 50%; width: 65%;">
-              <div class="broadcast-quote-frame">
-                <div class="broadcast-quote-inner" style="padding: 14px 70px 14px 18px; min-height: 60px;">
-                  ${slide.quoteAuthor ? `<div class="broadcast-quote-author" style="font-size: 20px; font-weight: 900; margin-bottom: 4px; letter-spacing: 0.06em;">${slide.quoteAuthor}</div>` : ''}
-                  <div class="broadcast-quote-text" style="font-size: 16px; font-weight: 700; letter-spacing: 0.02em;">${slide.quote}</div>
+            <div class="broadcast-quote-overlay" style="pointer-events: none; padding: 3%;">
+              <div class="broadcast-quote-panel" style="width: 92%;">
+                <img src="/public/logos/quote-devil-logo.png" alt="" class="broadcast-quote-logo" style="width: clamp(40px, 7vw, 65px); left: clamp(10px, 2vw, 20px);" onerror="this.style.display='none'">
+                <div class="broadcast-quote-panel-inner" style="padding: clamp(12px, 1.8vw, 22px) clamp(14px, 2vw, 28px); padding-left: clamp(18px, 2.5vw, 32px);">
+                  <div class="broadcast-quote-accent" style="width: 4px;"></div>
+                  <div class="broadcast-quote-content" style="margin-left: clamp(35px, 5vw, 55px);">
+                    ${slide.quoteAuthor ? `<div class="broadcast-quote-author" style="font-size: clamp(10px, 2vw, 18px); margin-bottom: clamp(4px, 0.8vw, 8px);">${slide.quoteAuthor}</div>` : ''}
+                    <div class="broadcast-quote-text" style="font-size: clamp(8px, 1.4vw, 14px);">"${slide.quote}"</div>
+                  </div>
                 </div>
               </div>
-              <img src="/uploads/manchester-united-devil-seeklogo.svg" alt="" class="broadcast-quote-logo" style="width: 70px; right: 15px; top: -15px;" onerror="this.style.display='none'">
             </div>` : ''}
           ${slide.title || slide.subtitle ? `
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent px-6 pb-6 pt-14">
@@ -2314,25 +2411,25 @@
 
     function renderNavBar(slide) {
       return `
-        <div class="flex items-center justify-center gap-4">
-          <button onclick="goPrev()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <div class="flex items-center justify-center gap-4" role="navigation" aria-label="Slideshow controls">
+          <button onclick="goPrev()" aria-label="Previous slide" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
-          <span class="text-white font-medium min-w-[60px] text-center">${slides.length ? `${currentIndex + 1} / ${slides.length}` : '0 / 0'}</span>
-          <button onclick="goNext()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          <span class="text-white font-medium min-w-[60px] text-center" aria-live="polite">${slides.length ? `${currentIndex + 1} / ${slides.length}` : '0 / 0'}</span>
+          <button onclick="goNext()" aria-label="Next slide" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
           ${slide?.type === 'video' ? `
-            <div class="w-px h-8 bg-white/20"></div>
-            <button onclick="togglePlay()" id="playBtn" class="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-xl">
-              ${isPlaying ? `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>` : `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
+            <div class="w-px h-8 bg-white/20" aria-hidden="true"></div>
+            <button onclick="togglePlay()" id="playBtn" aria-label="${isPlaying ? 'Pause video' : 'Play video'}" class="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-xl focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none">
+              ${isPlaying ? `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>` : `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`}
             </button>` : ''}
-          <div class="w-px h-8 bg-white/20"></div>
-          <button onclick="editingSlideId = slides[currentIndex]?.id; renderFull();" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 ${editingSlideId ? 'ring-2 ring-blue-500' : ''}" title="Edit slide (E)">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <div class="w-px h-8 bg-white/20" aria-hidden="true"></div>
+          <button onclick="editingSlideId = slides[currentIndex]?.id; renderFull();" aria-label="Edit slide" aria-pressed="${editingSlideId ? 'true' : 'false'}" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none ${editingSlideId ? 'ring-2 ring-blue-500' : ''}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
-          <button onclick="showKeyboardHelp = true; renderFull();" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10" title="Keyboard shortcuts (?)">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <button onclick="showKeyboardHelp = true; renderFull();" aria-label="Show keyboard shortcuts" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl border border-white/10 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
         </div>
         <div class="flex justify-center gap-6 mt-3 text-xs text-gray-500">
@@ -2372,54 +2469,75 @@
         <div class="editor-panel w-80 bg-neutral-900 border-l border-white/10 flex flex-col">
           <div class="p-4 border-b border-white/10 flex items-center justify-between">
             <h3 class="text-white font-semibold">Edit Slide</h3>
-            <button onclick="editingSlideId = null; renderFull();" class="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button onclick="editingSlideId = null; renderFull();" aria-label="Close editor" class="text-gray-400 hover:text-white p-1 rounded hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
           <div class="flex-1 overflow-y-auto scrollbar p-4 space-y-4">
             <div class="aspect-video rounded-lg overflow-hidden bg-black border border-white/10">
-              ${slide.type === 'video' ? `<video src="${slide.url}" class="w-full h-full object-contain"></video>` : `<img src="${slide.url}" class="w-full h-full object-contain">`}
+              ${slide.type === 'video' ? `<video src="${slide.url}" class="w-full h-full object-contain"></video>` : `<img src="${slide.url}" referrerpolicy="no-referrer" class="w-full h-full object-contain">`}
             </div>
-            
+
+            ${slide.imageOptions && slide.imageOptions.length > 1 ? `
+            <!-- Image Options for this slide -->
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Slide Name</label>
-              <input type="text" id="ed-name" value="${slide.name || ''}" placeholder="Name for sidebar...">
+              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Change Image (${slide.imageOptions.length} options)</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                ${slide.imageOptions.map((opt, optIdx) => `
+                  <button onclick="selectSlideImageOption(${slide.id}, ${optIdx})" class="aspect-video rounded overflow-hidden border-2 transition-all ${optIdx === (slide.selectedOptionIndex || 0) ? 'border-blue-500 ring-1 ring-blue-500/50' : 'border-white/10 hover:border-white/30 opacity-70 hover:opacity-100'}">
+                    <img src="${opt.url}" referrerpolicy="no-referrer" crossorigin="anonymous" class="w-full h-full object-cover" onerror="this.removeAttribute('crossorigin'); this.src=this.src;" loading="lazy">
+                  </button>
+                `).join('')}
+              </div>
+              ${slide.searchLinks ? `
+              <a href="${slide.searchLinks.google}" target="_blank" class="mt-2 w-full py-1.5 rounded bg-neutral-800 hover:bg-neutral-700 border border-white/10 flex items-center justify-center gap-1.5 transition text-xs text-gray-400 hover:text-white">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Search for more images
+              </a>
+              ` : ''}
             </div>
-            
-            <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Notes (not displayed)</label>
-              <textarea id="ed-notes" rows="2" placeholder="Your notes...">${slide.notes || ''}</textarea>
-            </div>
-            
             <hr class="border-white/10">
-            
+            ` : ''}
+
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Display Title</label>
-              <input type="text" id="ed-title" value="${slide.title || ''}" placeholder="Title on slide...">
+              <label for="ed-name" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Slide Name</label>
+              <input type="text" id="ed-name" name="slideName" autocomplete="off" value="${slide.name || ''}" placeholder="Name for sidebar...">
             </div>
-            
+
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Display Subtitle</label>
-              <input type="text" id="ed-subtitle" value="${slide.subtitle || ''}" placeholder="Subtitle on slide...">
+              <label for="ed-notes" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Notes (not displayed)</label>
+              <textarea id="ed-notes" name="slideNotes" rows="2" placeholder="Your notes...">${slide.notes || ''}</textarea>
             </div>
-            
+
             <hr class="border-white/10">
-            
+
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Quote</label>
-              <textarea id="ed-quote" rows="3" placeholder="Quote text...">${slide.quote || ''}</textarea>
+              <label for="ed-title" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Display Title</label>
+              <input type="text" id="ed-title" name="slideTitle" autocomplete="off" value="${slide.title || ''}" placeholder="Title on slide...">
             </div>
-            
+
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Quote Author</label>
-              <input type="text" id="ed-quoteAuthor" value="${slide.quoteAuthor || ''}" placeholder="— Author">
+              <label for="ed-subtitle" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Display Subtitle</label>
+              <input type="text" id="ed-subtitle" name="slideSubtitle" autocomplete="off" value="${slide.subtitle || ''}" placeholder="Subtitle on slide...">
             </div>
-            
+
             <hr class="border-white/10">
-            
+
             <div>
-              <label class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ken Burns Effect</label>
-              <select id="ed-kenBurns">
+              <label for="ed-quote" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Quote</label>
+              <textarea id="ed-quote" name="slideQuote" rows="3" placeholder="Quote text...">${slide.quote || ''}</textarea>
+            </div>
+
+            <div>
+              <label for="ed-quoteAuthor" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Quote Author</label>
+              <input type="text" id="ed-quoteAuthor" name="quoteAuthor" autocomplete="off" value="${slide.quoteAuthor || ''}" placeholder="— Author">
+            </div>
+
+            <hr class="border-white/10">
+
+            <div>
+              <label for="ed-kenBurns" class="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Ken Burns Effect</label>
+              <select id="ed-kenBurns" name="kenBurns">
                 <option value="none" ${slide.kenBurns === 'none' ? 'selected' : ''}>None</option>
                 <option value="zoomIn" ${slide.kenBurns === 'zoomIn' ? 'selected' : ''}>Slow Zoom In</option>
                 <option value="zoomOut" ${slide.kenBurns === 'zoomOut' ? 'selected' : ''}>Slow Zoom Out</option>

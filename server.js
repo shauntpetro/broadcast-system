@@ -74,6 +74,9 @@ app.use(express.static(path.join(__dirname)));
 // Serve uploads directory
 app.use('/uploads', express.static(UPLOADS_DIR));
 
+// Serve public assets (logos, etc.) - these are committed to git and deployed
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
 // API routes
 app.use('/api', apiRouter);
 app.use('/api', createStateRoutes(state));
