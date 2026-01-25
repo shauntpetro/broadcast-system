@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semeex Football - Topic Card</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700;800;900&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Oswald', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ========================================
+       Semeex Football Full-Screen Topic Card
+       Talk of the Devils / ESPN Style
+    ======================================== */
+
+    :root {
+      color-scheme: dark;
+      --semeex-gold: #f5d000;
+      --semeex-gold-light: #ffe55c;
+      --semeex-gold-dark: #c9a800;
+      --semeex-red: #da020e;
+      --semeex-red-dark: #a00008;
+      --card-dark: #0a0a0a;
+    }
+
+    .topic-card-container {
+      visibility: hidden;
+      opacity: 0;
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Background layers */
+    .card-background {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg,
+        rgba(30, 0, 5, 0.97) 0%,
+        rgba(10, 10, 10, 0.98) 30%,
+        rgba(10, 10, 10, 0.98) 70%,
+        rgba(30, 0, 5, 0.97) 100%
+      );
+    }
+
+    /* Grunge/texture overlay */
+    .card-background::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px,
+          transparent 100px,
+          rgba(255, 255, 255, 0.01) 100px,
+          rgba(255, 255, 255, 0.01) 101px
+        );
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    /* Red vignette edges */
+    .card-background::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at top, rgba(218, 2, 14, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom, rgba(218, 2, 14, 0.15) 0%, transparent 50%),
+        linear-gradient(90deg, rgba(218, 2, 14, 0.1) 0%, transparent 15%, transparent 85%, rgba(218, 2, 14, 0.1) 100%);
+      pointer-events: none;
+    }
+
+    /* Top accent bar */
+    .accent-bar-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--semeex-red) 20%,
+        var(--semeex-red) 80%,
+        transparent 100%
+      );
+      box-shadow: 0 4px 30px rgba(218, 2, 14, 0.5);
+      transform-origin: center;
+    }
+
+    /* Bottom accent bar */
+    .accent-bar-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--semeex-red) 20%,
+        var(--semeex-red) 80%,
+        transparent 100%
+      );
+      box-shadow: 0 -4px 30px rgba(218, 2, 14, 0.5);
+      transform-origin: center;
+    }
+
+    /* Content wrapper */
+    .card-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px;
+      max-width: 1400px;
+    }
+
+    /* Logo in corner */
+    .corner-logo {
+      position: absolute;
+      top: 40px;
+      right: 50px;
+      width: 200px;
+      z-index: 20;
+      filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.8));
+    }
+
+    .corner-logo img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Main topic text */
+    .topic-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(60px, 10vw, 140px);
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      text-shadow:
+        0 0 80px rgba(255, 255, 255, 0.15),
+        0 8px 30px rgba(0, 0, 0, 0.9),
+        4px 4px 0 rgba(0, 0, 0, 0.3);
+      max-width: 90%;
+      word-wrap: break-word;
+    }
+
+    /* Subtitle/description */
+    .topic-subtitle {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(24px, 3vw, 42px);
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-top: 30px;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Decorative lines around text */
+    .decorative-line {
+      width: 120px;
+      height: 4px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--semeex-gold) 20%,
+        var(--semeex-gold) 80%,
+        transparent 100%
+      );
+      margin: 25px 0;
+      box-shadow: 0 0 20px rgba(245, 208, 0, 0.4);
+    }
+
+    .decorative-line.top {
+      margin-bottom: 40px;
+    }
+
+    .decorative-line.bottom {
+      margin-top: 40px;
+    }
+
+    /* ========================================
+       Debug / Waiting State
+    ======================================== */
+
+    .waiting-message {
+      display: none;
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+    }
+
+    body.debug .waiting-message {
+      display: block;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Semeex Football Full-Screen Topic Card -->
+  <div id="topicCardContainer" class="topic-card-container">
+    <!-- Background -->
+    <div class="card-background" id="cardBg"></div>
+
+    <!-- Top accent bar -->
+    <div class="accent-bar-top" id="accentTop"></div>
+
+    <!-- Bottom accent bar -->
+    <div class="accent-bar-bottom" id="accentBottom"></div>
+
+    <!-- Corner Logo -->
+    <div class="corner-logo" id="cornerLogo">
+      <img src="/public/logos/SemeexLogoStacked.png" alt="Semeex Football">
+    </div>
+
+    <!-- Content -->
+    <div class="card-content" id="cardContent">
+      <div class="decorative-line top" id="lineTop"></div>
+      <div class="topic-text" id="topicText">MAN UNITED'S LACK OF DIRECTION</div>
+      <div class="topic-subtitle" id="topicSubtitle"></div>
+      <div class="decorative-line bottom" id="lineBottom"></div>
+    </div>
+  </div>
+
+  <!-- Debug waiting message -->
+  <div class="waiting-message">Waiting for topic card data...</div>
+
+  <script>
+    // ========================================================================
+    // Configuration
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug') === 'true';
+
+    if (debug) {
+      document.body.classList.add('debug');
+    }
+
+    console.log('[TopicCard] Initialized');
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let currentData = null;
+    let isVisible = false;
+    let isAnimating = false;
+
+    // DOM Elements
+    const container = document.getElementById('topicCardContainer');
+    const cardBg = document.getElementById('cardBg');
+    const accentTop = document.getElementById('accentTop');
+    const accentBottom = document.getElementById('accentBottom');
+    const cornerLogo = document.getElementById('cornerLogo');
+    const cardContent = document.getElementById('cardContent');
+    const lineTop = document.getElementById('lineTop');
+    const lineBottom = document.getElementById('lineBottom');
+    const topicText = document.getElementById('topicText');
+    const topicSubtitle = document.getElementById('topicSubtitle');
+
+    // ========================================================================
+    // Render Topic Card
+    // ========================================================================
+    function renderTopicCard(data) {
+      if (!data) return;
+
+      topicText.textContent = data.title || 'TOPIC';
+
+      if (data.subtitle) {
+        topicSubtitle.textContent = data.subtitle;
+        topicSubtitle.style.display = 'block';
+      } else {
+        topicSubtitle.style.display = 'none';
+      }
+    }
+
+    // ========================================================================
+    // Animations
+    // ========================================================================
+    function animateIn(data) {
+      if (isAnimating || isVisible) return;
+      isAnimating = true;
+
+      renderTopicCard(data);
+      currentData = data;
+
+      // Kill existing animations
+      gsap.killTweensOf([container, cardBg, accentTop, accentBottom, cornerLogo,
+                         cardContent, lineTop, lineBottom, topicText, topicSubtitle]);
+
+      // Initial states
+      gsap.set(container, { visibility: 'visible', opacity: 1 });
+      gsap.set(cardBg, { opacity: 0 });
+      gsap.set(accentTop, { scaleX: 0 });
+      gsap.set(accentBottom, { scaleX: 0 });
+      gsap.set(cornerLogo, { opacity: 0, x: 50 });
+      gsap.set(lineTop, { scaleX: 0 });
+      gsap.set(lineBottom, { scaleX: 0 });
+      gsap.set(topicText, { opacity: 0, y: 50, scale: 0.9 });
+      gsap.set(topicSubtitle, { opacity: 0, y: 30 });
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+          isVisible = true;
+          console.log('[TopicCard] Animation complete');
+        }
+      });
+
+      // Background fades in
+      tl.to(cardBg, {
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      });
+
+      // Accent bars expand from center
+      tl.to([accentTop, accentBottom], {
+        scaleX: 1,
+        duration: 0.5,
+        ease: 'power3.out'
+      }, '-=0.2');
+
+      // Corner logo slides in
+      tl.to(cornerLogo, {
+        opacity: 1,
+        x: 0,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.35');
+
+      // Top decorative line
+      tl.to(lineTop, {
+        scaleX: 1,
+        duration: 0.35,
+        ease: 'power2.out'
+      }, '-=0.3');
+
+      // Main topic text rises up dramatically
+      tl.to(topicText, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.6,
+        ease: 'power3.out'
+      }, '-=0.25');
+
+      // Bottom decorative line
+      tl.to(lineBottom, {
+        scaleX: 1,
+        duration: 0.35,
+        ease: 'power2.out'
+      }, '-=0.4');
+
+      // Subtitle (if present)
+      if (data.subtitle) {
+        tl.to(topicSubtitle, {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          ease: 'power2.out'
+        }, '-=0.3');
+      }
+
+      console.log('[TopicCard] Animating in:', data.title);
+    }
+
+    function animateOut(callback) {
+      if (isAnimating || !isVisible) {
+        if (callback) callback();
+        return;
+      }
+      isAnimating = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+          currentData = null;
+          isAnimating = false;
+          isVisible = false;
+          if (callback) callback();
+          console.log('[TopicCard] Animation out complete');
+        }
+      });
+
+      // Subtitle fades first
+      tl.to(topicSubtitle, {
+        opacity: 0,
+        y: -20,
+        duration: 0.25,
+        ease: 'power2.in'
+      });
+
+      // Decorative lines retract
+      tl.to([lineTop, lineBottom], {
+        scaleX: 0,
+        duration: 0.3,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // Main text fades
+      tl.to(topicText, {
+        opacity: 0,
+        y: -30,
+        scale: 0.95,
+        duration: 0.35,
+        ease: 'power2.in'
+      }, '-=0.25');
+
+      // Corner logo exits
+      tl.to(cornerLogo, {
+        opacity: 0,
+        x: 30,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // Accent bars retract
+      tl.to([accentTop, accentBottom], {
+        scaleX: 0,
+        duration: 0.35,
+        ease: 'power3.in'
+      }, '-=0.2');
+
+      // Background fades out
+      tl.to(cardBg, {
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      console.log('[TopicCard] Animating out');
+    }
+
+    // ========================================================================
+    // Handle Topic Card Updates
+    // ========================================================================
+    function handleTopicCardUpdate(data) {
+      const show = data.visible !== false;
+      const hasContent = data.title;
+
+      if (show && hasContent) {
+        if (!isVisible) {
+          animateIn(data);
+        } else if (currentData && currentData.title !== data.title) {
+          // Title changed - animate out then in
+          animateOut(() => {
+            setTimeout(() => animateIn(data), 200);
+          });
+        }
+      } else if (isVisible) {
+        animateOut();
+      }
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[TopicCard] WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (e) {
+          console.error('[TopicCard] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[TopicCard] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[TopicCard] WebSocket error:', error);
+      };
+    }
+
+    function handleMessage(data) {
+      switch (data.type) {
+        case 'batch':
+          if (data.messages && Array.isArray(data.messages)) {
+            for (const msg of data.messages) {
+              handleMessage(msg);
+            }
+          }
+          break;
+
+        case 'init':
+          if (data.data.topicCard) {
+            handleTopicCardUpdate(data.data.topicCard);
+          }
+          break;
+
+        case 'topic_card_update':
+          handleTopicCardUpdate(data.data);
+          break;
+      }
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Debug: Test animation
+    if (params.get('test') === 'true') {
+      setTimeout(() => {
+        handleTopicCardUpdate({
+          visible: true,
+          title: "MAN UNITED'S LACK OF DIRECTION",
+          subtitle: ''
+        });
+      }, 1000);
+
+      // Test with subtitle
+      setTimeout(() => {
+        handleTopicCardUpdate({
+          visible: true,
+          title: 'TRANSFER WINDOW ANALYSIS',
+          subtitle: 'WHO SHOULD UNITED TARGET?'
+        });
+      }, 6000);
+
+      // Test another topic
+      setTimeout(() => {
+        handleTopicCardUpdate({
+          visible: true,
+          title: 'CAN UNITED SALVAGE 25/26?',
+          subtitle: ''
+        });
+      }, 11000);
+
+      // Test hide
+      setTimeout(() => {
+        handleTopicCardUpdate({ visible: false });
+      }, 15000);
+
+      // Test show again
+      setTimeout(() => {
+        handleTopicCardUpdate({
+          visible: true,
+          title: 'VIEWER Q&A SESSION',
+          subtitle: 'YOUR QUESTIONS ANSWERED'
+        });
+      }, 17000);
+    }
+  </script>
+</body>
+</html>

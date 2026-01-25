@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semeex Football - Lower Third</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700;800&family=Roboto+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Oswald', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 0 100px 0; /* Space for ticker below */
+    }
+
+    /* ========================================
+       ESPN First Take Style Lower Third
+       Multi-layer stacked bars with gravitas
+    ======================================== */
+
+    :root {
+      --semeex-gold: #f5d000;
+      --semeex-gold-light: #ffe55c;
+      --semeex-gold-dark: #c9a800;
+      --semeex-red: #da020e;
+      --semeex-red-dark: #9a0109;
+      --bar-dark: #1a1a1a;
+      --bar-medium: #2d2d2d;
+      --bar-light: #404040;
+      --cream: #f5f0e8;
+    }
+
+    .lower-third-container {
+      visibility: hidden;
+      opacity: 0;
+      width: 100%;
+      max-width: 1400px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ========================================
+       Top Name Bar - Speaker name + social
+    ======================================== */
+    .name-bar {
+      display: flex;
+      align-items: center;
+      height: 38px;
+      background: linear-gradient(180deg, #4a4a4a 0%, #3d3d3d 50%, #2d2d2d 100%);
+      border-bottom: 2px solid var(--semeex-gold);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .name-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+
+    .speaker-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 0 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .social-handle {
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      font-weight: 400;
+      color: #4fc3f7; /* Twitter blue */
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* ========================================
+       Main Headline Bar - Big bold question
+    ======================================== */
+    .headline-bar {
+      display: flex;
+      align-items: stretch;
+      min-height: 75px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Left image slot */
+    .image-slot {
+      width: 140px;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .image-slot.left {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+
+    .image-slot.right {
+      background: linear-gradient(225deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+
+    .image-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .image-slot .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-slot .placeholder img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      opacity: 0.6;
+    }
+
+    /* Main headline text area */
+    .headline-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 30px;
+      position: relative;
+    }
+
+    .headline-text {
+      font-family: 'Roboto Condensed', 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+      line-height: 1.1;
+      text-shadow: none;
+    }
+
+    /* Accent stripes on sides */
+    .headline-bar::before {
+      content: '';
+      position: absolute;
+      left: 140px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--semeex-gold) 0%, var(--semeex-gold-dark) 100%);
+      z-index: 10;
+    }
+
+    .headline-bar::after {
+      content: '';
+      position: absolute;
+      right: 140px;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--semeex-gold) 0%, var(--semeex-gold-dark) 100%);
+      z-index: 10;
+    }
+
+    /* ========================================
+       Subtitle Bar - Additional context
+    ======================================== */
+    .subtitle-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      background: linear-gradient(180deg, #2d2d2d 0%, #1a1a1a 100%);
+      border-top: 2px solid var(--semeex-red);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subtitle-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--semeex-red) 20%,
+        var(--semeex-red) 80%,
+        transparent 100%
+      );
+    }
+
+    .subtitle-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      color: #cccccc;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* ========================================
+       Bottom Accent - Show branding
+    ======================================== */
+    .brand-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      background: linear-gradient(90deg,
+        var(--semeex-red) 0%,
+        var(--semeex-red-dark) 30%,
+        #1a1a1a 30%,
+        #1a1a1a 100%
+      );
+      position: relative;
+    }
+
+    .brand-bar::before {
+      content: 'SEMEEX FOOTBALL';
+      position: absolute;
+      left: 0;
+      width: 30%;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      color: #ffffff;
+      letter-spacing: 3px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    /* ========================================
+       Side decorative elements
+    ======================================== */
+    .side-stripe {
+      position: absolute;
+      width: 6px;
+      height: 100%;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--semeex-red),
+        var(--semeex-red) 10px,
+        var(--semeex-gold) 10px,
+        var(--semeex-gold) 20px
+      );
+      top: 0;
+    }
+
+    .side-stripe.left {
+      left: -8px;
+    }
+
+    .side-stripe.right {
+      right: -8px;
+    }
+
+    /* ========================================
+       Debug / Waiting State
+    ======================================== */
+
+    .waiting-message {
+      display: none;
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      text-align: center;
+      width: 100%;
+    }
+
+    body.debug .waiting-message {
+      display: block;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Semeex Football Lower Third - ESPN First Take Style -->
+  <div id="lowerThirdContainer" class="lower-third-container">
+    <!-- Side decorative stripes -->
+    <div class="side-stripe left" id="stripeLeft"></div>
+    <div class="side-stripe right" id="stripeRight"></div>
+
+    <!-- Top Name Bar -->
+    <div class="name-bar" id="nameBar">
+      <span class="speaker-name" id="speakerName">SEMEEX</span>
+      <span class="social-handle" id="socialHandle">@SemeexFootball</span>
+    </div>
+
+    <!-- Main Headline Bar -->
+    <div class="headline-bar" id="headlineBar">
+      <!-- Left Image -->
+      <div class="image-slot left" id="leftImageSlot">
+        <div class="placeholder">
+          <img src="/public/logos/SemeexBadgeLogo.png" alt="">
+        </div>
+      </div>
+
+      <!-- Headline Text -->
+      <div class="headline-content" id="headlineContent">
+        <span class="headline-text" id="headlineText">MORE LIKELY EAGLES MAKE SUPER BOWL OR MISS PLAYOFFS?</span>
+      </div>
+
+      <!-- Right Image -->
+      <div class="image-slot right" id="rightImageSlot">
+        <div class="placeholder">
+          <img src="/public/logos/SemeexBadgeLogo.png" alt="">
+        </div>
+      </div>
+    </div>
+
+    <!-- Subtitle Bar -->
+    <div class="subtitle-bar" id="subtitleBar">
+      <span class="subtitle-text" id="subtitleText">Doug Pederson says he will know Week 1 starter by Friday</span>
+    </div>
+
+    <!-- Brand Bar -->
+    <div class="brand-bar" id="brandBar"></div>
+  </div>
+
+  <!-- Debug waiting message -->
+  <div class="waiting-message">Waiting for lower third data...</div>
+
+  <script>
+    // ========================================================================
+    // Configuration
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug') === 'true';
+
+    if (debug) {
+      document.body.classList.add('debug');
+    }
+
+    console.log('[LowerThird] Initialized - First Take Style');
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let currentData = null;
+    let isVisible = false;
+    let isAnimating = false;
+
+    // DOM Elements
+    const container = document.getElementById('lowerThirdContainer');
+    const nameBar = document.getElementById('nameBar');
+    const speakerName = document.getElementById('speakerName');
+    const socialHandle = document.getElementById('socialHandle');
+    const headlineBar = document.getElementById('headlineBar');
+    const headlineContent = document.getElementById('headlineContent');
+    const headlineText = document.getElementById('headlineText');
+    const leftImageSlot = document.getElementById('leftImageSlot');
+    const rightImageSlot = document.getElementById('rightImageSlot');
+    const subtitleBar = document.getElementById('subtitleBar');
+    const subtitleText = document.getElementById('subtitleText');
+    const brandBar = document.getElementById('brandBar');
+    const stripeLeft = document.getElementById('stripeLeft');
+    const stripeRight = document.getElementById('stripeRight');
+
+    // ========================================================================
+    // Render Lower Third
+    // ========================================================================
+    function renderLowerThird(data) {
+      if (!data) return;
+
+      // Main headline (required)
+      headlineText.textContent = data.headline || 'BREAKING NEWS';
+
+      // Subtitle/description
+      if (data.description) {
+        subtitleText.textContent = data.description;
+        subtitleBar.style.display = 'flex';
+      } else {
+        subtitleBar.style.display = 'none';
+      }
+
+      // Optional: Speaker name (defaults to SEMEEX)
+      speakerName.textContent = data.speaker || 'SEMEEX';
+
+      // Optional: Social handle
+      if (data.social) {
+        socialHandle.textContent = data.social;
+        socialHandle.style.display = 'inline';
+      } else {
+        socialHandle.style.display = 'none';
+      }
+
+      // Optional: Left image
+      if (data.leftImage) {
+        leftImageSlot.innerHTML = `<img src="${data.leftImage}" alt="">`;
+      } else {
+        leftImageSlot.innerHTML = `<div class="placeholder"><img src="/public/logos/SemeexBadgeLogo.png" alt=""></div>`;
+      }
+
+      // Optional: Right image
+      if (data.rightImage) {
+        rightImageSlot.innerHTML = `<img src="${data.rightImage}" alt="">`;
+      } else {
+        rightImageSlot.innerHTML = `<div class="placeholder"><img src="/public/logos/SemeexBadgeLogo.png" alt=""></div>`;
+      }
+    }
+
+    // ========================================================================
+    // Animations - Dramatic ESPN style
+    // ========================================================================
+    function animateIn(data) {
+      if (isAnimating || isVisible) return;
+      isAnimating = true;
+
+      renderLowerThird(data);
+      currentData = data;
+
+      // Kill existing animations
+      gsap.killTweensOf([container, nameBar, headlineBar, subtitleBar, brandBar,
+                         headlineContent, leftImageSlot, rightImageSlot, stripeLeft, stripeRight]);
+
+      // Initial states
+      gsap.set(container, { visibility: 'visible', opacity: 1 });
+      gsap.set(stripeLeft, { scaleY: 0, transformOrigin: 'top center' });
+      gsap.set(stripeRight, { scaleY: 0, transformOrigin: 'top center' });
+      gsap.set(nameBar, { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set(headlineBar, { scaleY: 0, transformOrigin: 'center center' });
+      gsap.set(leftImageSlot, { x: -100, opacity: 0 });
+      gsap.set(rightImageSlot, { x: 100, opacity: 0 });
+      gsap.set(headlineContent, { opacity: 0, scale: 0.9 });
+      gsap.set(subtitleBar, { scaleX: 0, transformOrigin: 'center center' });
+      gsap.set(brandBar, { scaleX: 0, transformOrigin: 'left center' });
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+          isVisible = true;
+          console.log('[LowerThird] Animation complete');
+        }
+      });
+
+      // Side stripes drop in
+      tl.to([stripeLeft, stripeRight], {
+        scaleY: 1,
+        duration: 0.3,
+        ease: 'power3.out',
+        stagger: 0.05
+      });
+
+      // Name bar sweeps in from left
+      tl.to(nameBar, {
+        scaleX: 1,
+        duration: 0.35,
+        ease: 'power3.out'
+      }, '-=0.2');
+
+      // Main headline bar expands
+      tl.to(headlineBar, {
+        scaleY: 1,
+        duration: 0.4,
+        ease: 'power3.out'
+      }, '-=0.25');
+
+      // Images slam in from sides
+      tl.to(leftImageSlot, {
+        x: 0,
+        opacity: 1,
+        duration: 0.35,
+        ease: 'back.out(1.5)'
+      }, '-=0.3');
+
+      tl.to(rightImageSlot, {
+        x: 0,
+        opacity: 1,
+        duration: 0.35,
+        ease: 'back.out(1.5)'
+      }, '-=0.3');
+
+      // Headline content fades and scales in
+      tl.to(headlineContent, {
+        opacity: 1,
+        scale: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, '-=0.25');
+
+      // Subtitle bar expands from center
+      if (currentData.description) {
+        tl.to(subtitleBar, {
+          scaleX: 1,
+          duration: 0.35,
+          ease: 'power3.out'
+        }, '-=0.2');
+      }
+
+      // Brand bar sweeps in
+      tl.to(brandBar, {
+        scaleX: 1,
+        duration: 0.4,
+        ease: 'power3.out'
+      }, '-=0.25');
+
+      console.log('[LowerThird] Animating in');
+    }
+
+    function animateOut(callback) {
+      if (isAnimating || !isVisible) {
+        if (callback) callback();
+        return;
+      }
+      isAnimating = true;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+          currentData = null;
+          isAnimating = false;
+          isVisible = false;
+          if (callback) callback();
+          console.log('[LowerThird] Animation out complete');
+        }
+      });
+
+      // Brand bar retracts
+      tl.to(brandBar, {
+        scaleX: 0,
+        duration: 0.25,
+        ease: 'power3.in'
+      });
+
+      // Subtitle retracts
+      tl.to(subtitleBar, {
+        scaleX: 0,
+        duration: 0.25,
+        ease: 'power3.in'
+      }, '-=0.2');
+
+      // Headline fades
+      tl.to(headlineContent, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      // Images slide out
+      tl.to(leftImageSlot, {
+        x: -60,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.2');
+
+      tl.to(rightImageSlot, {
+        x: 60,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in'
+      }, '-=0.25');
+
+      // Headline bar collapses
+      tl.to(headlineBar, {
+        scaleY: 0,
+        duration: 0.3,
+        ease: 'power3.in'
+      }, '-=0.15');
+
+      // Name bar retracts
+      tl.to(nameBar, {
+        scaleX: 0,
+        duration: 0.25,
+        ease: 'power3.in'
+      }, '-=0.2');
+
+      // Side stripes retract
+      tl.to([stripeLeft, stripeRight], {
+        scaleY: 0,
+        duration: 0.2,
+        ease: 'power3.in'
+      }, '-=0.15');
+
+      console.log('[LowerThird] Animating out');
+    }
+
+    // ========================================================================
+    // Handle Lower Third Updates
+    // ========================================================================
+    function handleLowerThirdUpdate(data) {
+      const show = data.visible !== false;
+      const hasContent = data.headline;
+
+      if (show && hasContent) {
+        if (!isVisible) {
+          animateIn(data);
+        } else if (currentData && currentData.headline !== data.headline) {
+          // Content changed - animate out then in
+          animateOut(() => {
+            setTimeout(() => animateIn(data), 150);
+          });
+        }
+      } else if (isVisible) {
+        animateOut();
+      }
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[LowerThird] WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (e) {
+          console.error('[LowerThird] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[LowerThird] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[LowerThird] WebSocket error:', error);
+      };
+    }
+
+    function handleMessage(data) {
+      switch (data.type) {
+        case 'batch':
+          if (data.messages && Array.isArray(data.messages)) {
+            for (const msg of data.messages) {
+              handleMessage(msg);
+            }
+          }
+          break;
+
+        case 'init':
+          if (data.data.lowerThird) {
+            handleLowerThirdUpdate(data.data.lowerThird);
+          }
+          break;
+
+        case 'lower_third_update':
+          handleLowerThirdUpdate(data.data);
+          break;
+      }
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+    connectWebSocket();
+
+    // Debug: Test animation
+    if (params.get('test') === 'true') {
+      setTimeout(() => {
+        handleLowerThirdUpdate({
+          visible: true,
+          headline: 'MORE LIKELY UNITED WIN THE TITLE OR MISS TOP 4?',
+          description: 'Ten Hag says squad depth will be key factor in title race'
+        });
+      }, 1000);
+
+      // Test content change
+      setTimeout(() => {
+        handleLowerThirdUpdate({
+          visible: true,
+          headline: 'RASHFORD: STAY OR GO?',
+          description: 'PSG reportedly preparing £80m bid for England star'
+        });
+      }, 8000);
+
+      // Test headline only (no subtitle)
+      setTimeout(() => {
+        handleLowerThirdUpdate({
+          visible: true,
+          headline: 'BREAKING: MAJOR ANNOUNCEMENT INCOMING',
+          description: ''
+        });
+      }, 15000);
+
+      // Test hide
+      setTimeout(() => {
+        handleLowerThirdUpdate({ visible: false });
+      }, 20000);
+
+      // Test show again
+      setTimeout(() => {
+        handleLowerThirdUpdate({
+          visible: true,
+          headline: 'WHO WINS THE MANCHESTER DERBY?',
+          description: 'Form guide, key battles, and predictions for Sunday\'s clash'
+        });
+      }, 23000);
+    }
+  </script>
+</body>
+</html>
