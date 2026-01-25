@@ -895,6 +895,53 @@
             <span>Clear All</span>
           </button>
         </div>
+        <!-- Widget Quick Links -->
+        <div class="section-divider" style="margin: 12px 0;"></div>
+        <div class="font-display text-xs tracking-wider text-gray-500 mb-2">OBS WIDGET PAGES</div>
+        <div class="quick-actions">
+          <button onclick="window.open('/slideshow_4.html', '_blank')" class="quick-action-btn" aria-label="Open Slideshow">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span>Slideshow</span>
+          </button>
+          <button onclick="window.open('/nametag.html?slot=1', '_blank')" class="quick-action-btn" aria-label="Open Nametag 1">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+            </svg>
+            <span>Nametag 1</span>
+          </button>
+          <button onclick="window.open('/nametag.html?slot=2', '_blank')" class="quick-action-btn" aria-label="Open Nametag 2">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+            </svg>
+            <span>Nametag 2</span>
+          </button>
+          <button onclick="window.open('/social_widget.html', '_blank')" class="quick-action-btn" aria-label="Open Social Rotator">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            <span>Socials</span>
+          </button>
+          <button onclick="window.open('/lower_third.html', '_blank')" class="quick-action-btn" aria-label="Open Lower Third">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+            </svg>
+            <span>L3</span>
+          </button>
+          <button onclick="window.open('/agenda.html', '_blank')" class="quick-action-btn" aria-label="Open Agenda Panel">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+            <span>Agenda</span>
+          </button>
+          <button onclick="window.open('/topic_card.html', '_blank')" class="quick-action-btn" aria-label="Open Topic Card">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            <span>Topic</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1130,6 +1177,473 @@
         </div>
       </div>
     </div>
+
+    <!-- ================================================================== -->
+    <!-- BROADCAST WIDGETS SECTION -->
+    <!-- ================================================================== -->
+
+    <!-- Nametag Controls -->
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('nametagContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="nametagContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('nametagContent', this);}">
+        <div class="panel-title">Nametag Controls</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge"><span id="activeNametagCount">0</span> ACTIVE</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="nametagContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-2 mb-4">
+          <button onclick="hideAllNametags()" class="btn btn-secondary btn-small" style="border-color: #ef4444; color: #ef4444;">
+            Hide All Nametags
+          </button>
+        </div>
+        <div id="nametagSlots" class="space-y-3">
+          <!-- Slot 1 -->
+          <div class="p-3 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="font-display text-lg" style="color: var(--semeex-gold);">SLOT 1</span>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag1Visible" onchange="updateNametag(1)">
+                <span class="text-sm">Visible</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag1Mascot" checked onchange="updateNametag(1)">
+                <span class="text-sm">Show Logo</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">NAME</label>
+                <input type="text" id="nametag1Name" placeholder="SEMEEX" class="broadcast-input w-full" onchange="updateNametag(1)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono" title="Use \n for line breaks">CHANNEL NAME <span style="opacity: 0.5;">(\n = break)</span></label>
+                <input type="text" id="nametag1ChannelName" placeholder="SEMEEX FOOTBALL" class="broadcast-input w-full" onchange="updateNametag(1)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">LOGO POS</label>
+                <select id="nametag1LogoPos" class="broadcast-input w-full" onchange="updateNametag(1)">
+                  <option value="right">Right</option>
+                  <option value="left">Left</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">CUSTOM LOGO</label>
+                <div class="flex gap-1">
+                  <input type="file" id="nametag1LogoFile" accept="image/*" style="display:none" onchange="uploadNametagLogo(1, this)">
+                  <button onclick="document.getElementById('nametag1LogoFile').click()" class="btn btn-secondary btn-small flex-1" style="padding: 4px 8px; font-size: 11px;">
+                    <span id="nametag1LogoStatus">Upload</span>
+                  </button>
+                  <button onclick="clearNametagLogo(1)" class="btn btn-secondary btn-small" style="padding: 4px 6px; border-color: #ef4444; color: #ef4444;" title="Clear logo">✕</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">PRESET</label>
+                <select id="nametag1Preset" class="broadcast-input w-full" onchange="applyNametagPreset(1, this.value)">
+                  <option value="">Custom</option>
+                  <option value="semeex">SEMEEX</option>
+                  <option value="james">JAMES</option>
+                  <option value="andy">ANDY</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- Slot 2 -->
+          <div class="p-3 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="font-display text-lg" style="color: var(--semeex-gold);">SLOT 2</span>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag2Visible" onchange="updateNametag(2)">
+                <span class="text-sm">Visible</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag2Mascot" onchange="updateNametag(2)">
+                <span class="text-sm">Show Logo</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">NAME</label>
+                <input type="text" id="nametag2Name" placeholder="JAMES" class="broadcast-input w-full" onchange="updateNametag(2)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono" title="Use \n for line breaks">CHANNEL NAME <span style="opacity: 0.5;">(\n = break)</span></label>
+                <input type="text" id="nametag2ChannelName" placeholder="THE UNITED\nMUPPETIERS" class="broadcast-input w-full" onchange="updateNametag(2)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">LOGO POS</label>
+                <select id="nametag2LogoPos" class="broadcast-input w-full" onchange="updateNametag(2)">
+                  <option value="left">Left</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">CUSTOM LOGO</label>
+                <div class="flex gap-1">
+                  <input type="file" id="nametag2LogoFile" accept="image/*" style="display:none" onchange="uploadNametagLogo(2, this)">
+                  <button onclick="document.getElementById('nametag2LogoFile').click()" class="btn btn-secondary btn-small flex-1" style="padding: 4px 8px; font-size: 11px;">
+                    <span id="nametag2LogoStatus">Upload</span>
+                  </button>
+                  <button onclick="clearNametagLogo(2)" class="btn btn-secondary btn-small" style="padding: 4px 6px; border-color: #ef4444; color: #ef4444;" title="Clear logo">✕</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">PRESET</label>
+                <select id="nametag2Preset" class="broadcast-input w-full" onchange="applyNametagPreset(2, this.value)">
+                  <option value="">Custom</option>
+                  <option value="semeex">SEMEEX</option>
+                  <option value="james">JAMES</option>
+                  <option value="andy">ANDY</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- Slot 3 -->
+          <div class="p-3 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="font-display text-lg" style="color: var(--semeex-gold);">SLOT 3</span>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag3Visible" onchange="updateNametag(3)">
+                <span class="text-sm">Visible</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag3Mascot" onchange="updateNametag(3)">
+                <span class="text-sm">Show Logo</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">NAME</label>
+                <input type="text" id="nametag3Name" placeholder="ANDY" class="broadcast-input w-full" onchange="updateNametag(3)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono" title="Use \n for line breaks">CHANNEL NAME <span style="opacity: 0.5;">(\n = break)</span></label>
+                <input type="text" id="nametag3ChannelName" placeholder="FOOTY WITH\nAN EDGE" class="broadcast-input w-full" onchange="updateNametag(3)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">LOGO POS</label>
+                <select id="nametag3LogoPos" class="broadcast-input w-full" onchange="updateNametag(3)">
+                  <option value="right">Right</option>
+                  <option value="left">Left</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">CUSTOM LOGO</label>
+                <div class="flex gap-1">
+                  <input type="file" id="nametag3LogoFile" accept="image/*" style="display:none" onchange="uploadNametagLogo(3, this)">
+                  <button onclick="document.getElementById('nametag3LogoFile').click()" class="btn btn-secondary btn-small flex-1" style="padding: 4px 8px; font-size: 11px;">
+                    <span id="nametag3LogoStatus">Upload</span>
+                  </button>
+                  <button onclick="clearNametagLogo(3)" class="btn btn-secondary btn-small" style="padding: 4px 6px; border-color: #ef4444; color: #ef4444;" title="Clear logo">✕</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">PRESET</label>
+                <select id="nametag3Preset" class="broadcast-input w-full" onchange="applyNametagPreset(3, this.value)">
+                  <option value="">Custom</option>
+                  <option value="semeex">SEMEEX</option>
+                  <option value="james">JAMES</option>
+                  <option value="andy">ANDY</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- Slot 4 -->
+          <div class="p-3 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="font-display text-lg" style="color: var(--semeex-gold);">SLOT 4</span>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag4Visible" onchange="updateNametag(4)">
+                <span class="text-sm">Visible</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag4Mascot" onchange="updateNametag(4)">
+                <span class="text-sm">Show Logo</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">NAME</label>
+                <input type="text" id="nametag4Name" placeholder="GUEST" class="broadcast-input w-full" onchange="updateNametag(4)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono" title="Use \n for line breaks">CHANNEL NAME <span style="opacity: 0.5;">(\n = break)</span></label>
+                <input type="text" id="nametag4ChannelName" placeholder="CHANNEL NAME" class="broadcast-input w-full" onchange="updateNametag(4)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">LOGO POS</label>
+                <select id="nametag4LogoPos" class="broadcast-input w-full" onchange="updateNametag(4)">
+                  <option value="right">Right</option>
+                  <option value="left">Left</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">CUSTOM LOGO</label>
+                <div class="flex gap-1">
+                  <input type="file" id="nametag4LogoFile" accept="image/*" style="display:none" onchange="uploadNametagLogo(4, this)">
+                  <button onclick="document.getElementById('nametag4LogoFile').click()" class="btn btn-secondary btn-small flex-1" style="padding: 4px 8px; font-size: 11px;">
+                    <span id="nametag4LogoStatus">Upload</span>
+                  </button>
+                  <button onclick="clearNametagLogo(4)" class="btn btn-secondary btn-small" style="padding: 4px 6px; border-color: #ef4444; color: #ef4444;" title="Clear logo">✕</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">PRESET</label>
+                <select id="nametag4Preset" class="broadcast-input w-full" onchange="applyNametagPreset(4, this.value)">
+                  <option value="">Custom</option>
+                  <option value="semeex">SEMEEX</option>
+                  <option value="james">JAMES</option>
+                  <option value="andy">ANDY</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- Slot 5 -->
+          <div class="p-3 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="font-display text-lg" style="color: var(--semeex-gold);">SLOT 5</span>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag5Visible" onchange="updateNametag(5)">
+                <span class="text-sm">Visible</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="nametag5Mascot" onchange="updateNametag(5)">
+                <span class="text-sm">Show Logo</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">NAME</label>
+                <input type="text" id="nametag5Name" placeholder="GUEST" class="broadcast-input w-full" onchange="updateNametag(5)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono" title="Use \n for line breaks">CHANNEL NAME <span style="opacity: 0.5;">(\n = break)</span></label>
+                <input type="text" id="nametag5ChannelName" placeholder="CHANNEL NAME" class="broadcast-input w-full" onchange="updateNametag(5)">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">LOGO POS</label>
+                <select id="nametag5LogoPos" class="broadcast-input w-full" onchange="updateNametag(5)">
+                  <option value="right">Right</option>
+                  <option value="left">Left</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">CUSTOM LOGO</label>
+                <div class="flex gap-1">
+                  <input type="file" id="nametag5LogoFile" accept="image/*" style="display:none" onchange="uploadNametagLogo(5, this)">
+                  <button onclick="document.getElementById('nametag5LogoFile').click()" class="btn btn-secondary btn-small flex-1" style="padding: 4px 8px; font-size: 11px;">
+                    <span id="nametag5LogoStatus">Upload</span>
+                  </button>
+                  <button onclick="clearNametagLogo(5)" class="btn btn-secondary btn-small" style="padding: 4px 6px; border-color: #ef4444; color: #ef4444;" title="Clear logo">✕</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1 font-mono">PRESET</label>
+                <select id="nametag5Preset" class="broadcast-input w-full" onchange="applyNametagPreset(5, this.value)">
+                  <option value="">Custom</option>
+                  <option value="semeex">SEMEEX</option>
+                  <option value="james">JAMES</option>
+                  <option value="andy">ANDY</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Media Controls -->
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('socialContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="socialContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('socialContent', this);}">
+        <div class="panel-title">Social Media Rotator</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge"><span id="socialAccountCount">0</span> ACCOUNTS</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="socialContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-4 items-center mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="showSocials" onchange="toggleSocials()">
+            <span class="text-sm">Show Social Widget</span>
+          </label>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">ROTATION SPEED</label>
+            <div class="flex items-center gap-2">
+              <input type="range" id="socialRotationSpeed" min="2000" max="10000" value="5000" step="500" style="width: 120px;" onchange="updateSocialSettings()">
+              <span id="socialSpeedValue" class="font-mono text-sm" style="min-width: 40px;">5s</span>
+            </div>
+          </div>
+        </div>
+        <div id="socialAccountsList" class="space-y-2 mb-4 max-h-[200px] overflow-y-auto">
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO SOCIAL ACCOUNTS</div>
+            <div class="text-xs mt-1">Add accounts below</div>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap items-end">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">PLATFORM</label>
+            <select id="socialPlatform" class="broadcast-input">
+              <option value="youtube">YouTube</option>
+              <option value="twitter">Twitter/X</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="discord">Discord</option>
+              <option value="twitch">Twitch</option>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">HANDLE</label>
+            <input type="text" id="socialHandle" placeholder="@username" class="broadcast-input w-full">
+          </div>
+          <button onclick="addSocialAccount()" class="btn btn-primary btn-small">
+            + Add Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lower Third Controls -->
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('lowerThirdContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="lowerThirdContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('lowerThirdContent', this);}">
+        <div class="panel-title">Lower Third Banner</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge" id="lowerThirdStatus">HIDDEN</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="lowerThirdContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-4 items-center mb-4">
+          <button onclick="showLowerThird()" class="btn btn-primary btn-small">
+            Show Banner
+          </button>
+          <button onclick="hideLowerThird()" class="btn btn-secondary btn-small" style="border-color: #ef4444; color: #ef4444;">
+            Hide Banner
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">HEADLINE</label>
+            <input type="text" id="lowerThirdHeadline" placeholder="BREAKING NEWS" class="broadcast-input w-full">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">DESCRIPTION</label>
+            <input type="text" id="lowerThirdDescription" placeholder="Additional details here..." class="broadcast-input w-full">
+          </div>
+        </div>
+        <!-- Presets Section -->
+        <div class="section-divider" style="margin: 16px 0;"></div>
+        <div class="font-display text-xs tracking-wider text-gray-500 mb-2">SAVED PRESETS</div>
+        <div class="flex gap-2 mb-3">
+          <input type="text" id="lowerThirdPresetName" placeholder="Preset name..." class="broadcast-input flex-1" style="font-size: 12px;">
+          <button onclick="saveLowerThirdPreset()" class="btn btn-secondary btn-small" style="padding: 4px 12px;">
+            Save
+          </button>
+        </div>
+        <div id="lowerThirdPresetsList" class="space-y-2 max-h-32 overflow-y-auto">
+          <!-- Presets populated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Agenda Panel Controls -->
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('agendaContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="agendaContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('agendaContent', this);}">
+        <div class="panel-title">Agenda Panel</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge"><span id="agendaItemCount">0</span> ITEMS</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="agendaContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-4 items-center mb-4 pb-4" style="border-bottom: 1px solid var(--border-color);">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="showAgenda" onchange="toggleAgenda()">
+            <span class="text-sm">Show Agenda Panel</span>
+          </label>
+          <div class="flex-1">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">PANEL TITLE</label>
+            <input type="text" id="agendaTitle" value="TODAY'S AGENDA" class="broadcast-input w-full" onchange="updateAgendaSettings()">
+          </div>
+        </div>
+        <div id="agendaItemsList" class="space-y-2 mb-4 max-h-[250px] overflow-y-auto">
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO AGENDA ITEMS</div>
+            <div class="text-xs mt-1">Add topics below</div>
+          </div>
+        </div>
+        <div class="flex gap-2 items-end">
+          <div class="flex-1">
+            <label class="block text-xs text-gray-500 mb-1 font-mono">TOPIC</label>
+            <input type="text" id="agendaItemInput" placeholder="Topic title..." class="broadcast-input w-full" onkeypress="if(event.key==='Enter')addAgendaItem()">
+          </div>
+          <button onclick="addAgendaItem()" class="btn btn-primary btn-small">
+            + Add Topic
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic Card Controls -->
+    <div class="control-panel mt-6">
+      <div class="panel-header accordion-header" onclick="toggleAccordion('topicCardContent', this)" role="button" tabindex="0" aria-expanded="false" aria-controls="topicCardContent" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAccordion('topicCardContent', this);}">
+        <div class="panel-title">Topic Card (Full Screen)</div>
+        <div class="flex items-center gap-3">
+          <div class="panel-badge" id="topicCardStatus">HIDDEN</div>
+          <div class="accordion-toggle collapsed" aria-hidden="true">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="topicCardContent" class="accordion-content collapsed p-4" style="max-height: 0;">
+        <div class="flex gap-4 items-center mb-4">
+          <button onclick="showTopicCard()" class="btn btn-primary btn-small">
+            Show Topic Card
+          </button>
+          <button onclick="hideTopicCard()" class="btn btn-secondary btn-small" style="border-color: #ef4444; color: #ef4444;">
+            Hide Topic Card
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">TITLE</label>
+            <input type="text" id="topicCardTitle" placeholder="TRANSFER NEWS" class="broadcast-input w-full">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1 font-mono">SUBTITLE (Optional)</label>
+            <input type="text" id="topicCardSubtitle" placeholder="Latest updates from the January window" class="broadcast-input w-full">
+          </div>
+        </div>
+        <!-- Quick Topic Buttons (from Agenda) -->
+        <div class="section-divider"></div>
+        <div>
+          <div class="font-display text-sm tracking-wider mb-2">QUICK SHOW FROM AGENDA</div>
+          <div id="quickTopicButtons" class="flex gap-2 flex-wrap">
+            <span class="text-xs text-gray-500">No agenda items - add topics in Agenda Panel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -1838,6 +2352,626 @@
       updateTickerStyleUI();
       sendTickerUpdate();
     });
+
+    // ========================================================================
+    // Widget State
+    // ========================================================================
+    let nametags = {};
+    let socialAccounts = [];
+    let socialRotationSpeed = 5000;
+    let showSocialsState = false;
+    let lowerThird = { visible: false, headline: '', description: '' };
+    let agendaItems = [];
+    let agendaTitle = "TODAY'S AGENDA";
+    let showAgendaState = false;
+    let topicCard = { visible: false, title: '', subtitle: '' };
+
+    // ========================================================================
+    // Nametag Functions
+    // ========================================================================
+    // Store custom logo URLs per slot
+    let nametagLogos = { 1: '', 2: '', 3: '', 4: '', 5: '' };
+
+    // Presets for quick selection
+    const nametagPresets = {
+      semeex: {
+        name: 'SEMEEX',
+        channelName: 'SEMEEX\nFOOTBALL',
+        logoUrl: '/public/logos/SemeexBadgeLogo.png',
+        logoPosition: 'right'
+      },
+      james: {
+        name: 'JAMES',
+        channelName: 'THE UNITED\nMUPPETIERS',
+        logoUrl: '/public/logos/UnitedMuppetiers.png',
+        logoPosition: 'left'
+      },
+      andy: {
+        name: 'ANDY',
+        channelName: 'FOOTY WITH\nAN EDGE',
+        logoUrl: '/public/logos/FWAELogo.png',
+        logoPosition: 'right'
+      }
+    };
+
+    function applyNametagPreset(slot, preset) {
+      if (!preset || !nametagPresets[preset]) {
+        return; // Custom selected, don't change anything
+      }
+
+      const p = nametagPresets[preset];
+      document.getElementById(`nametag${slot}Name`).value = p.name;
+      document.getElementById(`nametag${slot}ChannelName`).value = p.channelName;
+      document.getElementById(`nametag${slot}LogoPos`).value = p.logoPosition;
+
+      // Set the logo URL
+      nametagLogos[slot] = p.logoUrl;
+      const statusEl = document.getElementById(`nametag${slot}LogoStatus`);
+      statusEl.textContent = 'Preset';
+      statusEl.style.color = 'var(--semeex-gold)';
+
+      updateNametag(slot);
+    }
+
+    function updateNametag(slot) {
+      const name = document.getElementById(`nametag${slot}Name`).value;
+      const channelName = document.getElementById(`nametag${slot}ChannelName`).value;
+      const logoPosition = document.getElementById(`nametag${slot}LogoPos`).value;
+      const visible = document.getElementById(`nametag${slot}Visible`).checked;
+      const showLogo = document.getElementById(`nametag${slot}Mascot`).checked;
+      const logoUrl = nametagLogos[slot] || '';
+
+      fetch(`/api/nametags/${slot}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, channelName, logoPosition, visible, showLogo, logoUrl })
+      }).then(r => r.json()).then(data => {
+        console.log(`[Nametag] Slot ${slot} updated:`, data);
+        updateActiveNametagCount();
+      });
+    }
+
+    function uploadNametagLogo(slot, input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById(`nametag${slot}LogoStatus`);
+      statusEl.textContent = 'Uploading...';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.url) {
+          nametagLogos[slot] = data.url;
+          statusEl.textContent = 'Custom';
+          statusEl.style.color = 'var(--semeex-gold)';
+          updateNametag(slot);
+          console.log(`[Nametag] Slot ${slot} logo uploaded:`, data.url);
+        } else {
+          statusEl.textContent = 'Error';
+          console.error('[Nametag] Upload failed:', data);
+        }
+      })
+      .catch(err => {
+        statusEl.textContent = 'Error';
+        console.error('[Nametag] Upload error:', err);
+      });
+
+      // Clear the input so the same file can be selected again
+      input.value = '';
+    }
+
+    function clearNametagLogo(slot) {
+      nametagLogos[slot] = '';
+      const statusEl = document.getElementById(`nametag${slot}LogoStatus`);
+      statusEl.textContent = 'Upload';
+      statusEl.style.color = '';
+      updateNametag(slot);
+      console.log(`[Nametag] Slot ${slot} logo cleared`);
+    }
+
+    function hideAllNametags() {
+      fetch('/api/nametags/hide-all', { method: 'POST' })
+        .then(r => r.json())
+        .then(() => {
+          for (let i = 1; i <= 5; i++) {
+            document.getElementById(`nametag${i}Visible`).checked = false;
+          }
+          updateActiveNametagCount();
+        });
+    }
+
+    function updateActiveNametagCount() {
+      let count = 0;
+      for (let i = 1; i <= 5; i++) {
+        if (document.getElementById(`nametag${i}Visible`).checked) count++;
+      }
+      document.getElementById('activeNametagCount').textContent = count;
+    }
+
+    function loadNametagsFromState(data) {
+      if (!data.nametags) return;
+      nametags = data.nametags;
+      for (let slot = 1; slot <= 5; slot++) {
+        const tag = nametags[slot];
+        if (tag) {
+          document.getElementById(`nametag${slot}Name`).value = tag.name || '';
+          document.getElementById(`nametag${slot}ChannelName`).value = tag.channelName || '';
+          document.getElementById(`nametag${slot}LogoPos`).value = tag.logoPosition || 'right';
+          document.getElementById(`nametag${slot}Visible`).checked = tag.visible || false;
+          document.getElementById(`nametag${slot}Mascot`).checked = tag.showLogo !== false;
+
+          // Load logo URL state
+          nametagLogos[slot] = tag.logoUrl || '';
+          const statusEl = document.getElementById(`nametag${slot}LogoStatus`);
+          if (tag.logoUrl && tag.logoUrl.trim() !== '') {
+            statusEl.textContent = 'Custom';
+            statusEl.style.color = 'var(--semeex-gold)';
+          } else {
+            statusEl.textContent = 'Upload';
+            statusEl.style.color = '';
+          }
+
+          // Reset preset selector to custom
+          document.getElementById(`nametag${slot}Preset`).value = '';
+        }
+      }
+      updateActiveNametagCount();
+    }
+
+    // ========================================================================
+    // Social Media Functions
+    // ========================================================================
+    function addSocialAccount() {
+      const platform = document.getElementById('socialPlatform').value;
+      const handle = document.getElementById('socialHandle').value.trim();
+      if (!handle) return;
+
+      socialAccounts.push({ platform, handle });
+      document.getElementById('socialHandle').value = '';
+      updateSocialSettings();
+      renderSocialAccounts();
+    }
+
+    function removeSocialAccount(index) {
+      socialAccounts.splice(index, 1);
+      updateSocialSettings();
+      renderSocialAccounts();
+    }
+
+    function toggleSocials() {
+      showSocialsState = document.getElementById('showSocials').checked;
+      updateSocialSettings();
+    }
+
+    function updateSocialSettings() {
+      const speed = parseInt(document.getElementById('socialRotationSpeed').value);
+      document.getElementById('socialSpeedValue').textContent = (speed / 1000) + 's';
+
+      fetch('/api/socials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          socialAccounts,
+          socialRotationSpeed: speed,
+          showSocials: showSocialsState
+        })
+      });
+    }
+
+    function renderSocialAccounts() {
+      const container = document.getElementById('socialAccountsList');
+      document.getElementById('socialAccountCount').textContent = socialAccounts.length;
+
+      if (socialAccounts.length === 0) {
+        container.innerHTML = `
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO SOCIAL ACCOUNTS</div>
+            <div class="text-xs mt-1">Add accounts below</div>
+          </div>`;
+        return;
+      }
+
+      const platformIcons = {
+        youtube: '▶',
+        twitter: '𝕏',
+        instagram: '📷',
+        tiktok: '♪',
+        discord: '💬',
+        twitch: '📺'
+      };
+
+      container.innerHTML = socialAccounts.map((acc, i) => `
+        <div class="flex items-center justify-between p-2 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+          <div class="flex items-center gap-2">
+            <span class="font-display">${platformIcons[acc.platform] || '•'}</span>
+            <span class="font-mono text-sm">${acc.platform.toUpperCase()}</span>
+            <span class="text-gray-400">${acc.handle}</span>
+          </div>
+          <button onclick="removeSocialAccount(${i})" class="text-red-500 hover:text-red-400 text-sm">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function loadSocialsFromState(data) {
+      if (data.socialAccounts) socialAccounts = data.socialAccounts;
+      if (data.socialRotationSpeed) {
+        socialRotationSpeed = data.socialRotationSpeed;
+        document.getElementById('socialRotationSpeed').value = socialRotationSpeed;
+        document.getElementById('socialSpeedValue').textContent = (socialRotationSpeed / 1000) + 's';
+      }
+      if (data.showSocials !== undefined) {
+        showSocialsState = data.showSocials;
+        document.getElementById('showSocials').checked = showSocialsState;
+      }
+      renderSocialAccounts();
+    }
+
+    // ========================================================================
+    // Lower Third Functions
+    // ========================================================================
+    function showLowerThird() {
+      const headline = document.getElementById('lowerThirdHeadline').value;
+      const description = document.getElementById('lowerThirdDescription').value;
+
+      fetch('/api/lower-third/show', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline, description })
+      }).then(() => {
+        document.getElementById('lowerThirdStatus').textContent = 'VISIBLE';
+        document.getElementById('lowerThirdStatus').style.color = 'var(--semeex-gold)';
+      });
+    }
+
+    function hideLowerThird() {
+      fetch('/api/lower-third/hide', { method: 'POST' })
+        .then(() => {
+          document.getElementById('lowerThirdStatus').textContent = 'HIDDEN';
+          document.getElementById('lowerThirdStatus').style.color = '';
+        });
+    }
+
+    function loadLowerThirdFromState(data) {
+      if (!data.lowerThird) return;
+      lowerThird = data.lowerThird;
+      document.getElementById('lowerThirdHeadline').value = lowerThird.headline || '';
+      document.getElementById('lowerThirdDescription').value = lowerThird.description || '';
+      if (lowerThird.visible) {
+        document.getElementById('lowerThirdStatus').textContent = 'VISIBLE';
+        document.getElementById('lowerThirdStatus').style.color = 'var(--semeex-gold)';
+      }
+    }
+
+    // Lower Third Presets (stored in localStorage)
+    let lowerThirdPresets = JSON.parse(localStorage.getItem('lowerThirdPresets') || '[]');
+
+    function saveLowerThirdPreset() {
+      const name = document.getElementById('lowerThirdPresetName').value.trim();
+      const headline = document.getElementById('lowerThirdHeadline').value;
+      const description = document.getElementById('lowerThirdDescription').value;
+
+      if (!name) {
+        alert('Please enter a preset name');
+        return;
+      }
+      if (!headline && !description) {
+        alert('Please enter a headline or description first');
+        return;
+      }
+
+      // Check if preset with this name exists, update it
+      const existingIndex = lowerThirdPresets.findIndex(p => p.name === name);
+      const preset = { name, headline, description, createdAt: Date.now() };
+
+      if (existingIndex >= 0) {
+        lowerThirdPresets[existingIndex] = preset;
+      } else {
+        lowerThirdPresets.push(preset);
+      }
+
+      localStorage.setItem('lowerThirdPresets', JSON.stringify(lowerThirdPresets));
+      document.getElementById('lowerThirdPresetName').value = '';
+      renderLowerThirdPresets();
+      console.log('[LowerThird] Preset saved:', name);
+    }
+
+    function loadLowerThirdPreset(index) {
+      const preset = lowerThirdPresets[index];
+      if (!preset) return;
+
+      document.getElementById('lowerThirdHeadline').value = preset.headline || '';
+      document.getElementById('lowerThirdDescription').value = preset.description || '';
+      console.log('[LowerThird] Preset loaded:', preset.name);
+    }
+
+    function deleteLowerThirdPreset(index) {
+      const preset = lowerThirdPresets[index];
+      if (!preset) return;
+
+      lowerThirdPresets.splice(index, 1);
+      localStorage.setItem('lowerThirdPresets', JSON.stringify(lowerThirdPresets));
+      renderLowerThirdPresets();
+      console.log('[LowerThird] Preset deleted:', preset.name);
+    }
+
+    function renderLowerThirdPresets() {
+      const container = document.getElementById('lowerThirdPresetsList');
+      if (!container) return;
+
+      if (lowerThirdPresets.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-600 italic">No saved presets</div>';
+        return;
+      }
+
+      container.innerHTML = lowerThirdPresets.map((preset, index) => `
+        <div class="flex items-center gap-2 p-2 rounded" style="background: var(--surface-dark); border: 1px solid var(--border-color);">
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-xs truncate" style="color: var(--semeex-gold);">${escapeHtml(preset.name)}</div>
+            <div class="text-xs text-gray-500 truncate">${escapeHtml(preset.headline || 'No headline')}</div>
+          </div>
+          <button onclick="loadLowerThirdPreset(${index})" class="btn btn-secondary btn-small" style="padding: 2px 8px; font-size: 10px;">
+            Load
+          </button>
+          <button onclick="deleteLowerThirdPreset(${index})" class="btn btn-secondary btn-small" style="padding: 2px 6px; font-size: 10px; border-color: #ef4444; color: #ef4444;">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize presets on load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLowerThirdPresets();
+    });
+
+    // ========================================================================
+    // Agenda Functions
+    // ========================================================================
+    function addAgendaItem() {
+      const input = document.getElementById('agendaItemInput');
+      const title = input.value.trim();
+      if (!title) return;
+
+      agendaItems.push({ title, completed: false, current: agendaItems.length === 0 });
+      input.value = '';
+      updateAgendaSettings();
+      renderAgendaItems();
+      updateQuickTopicButtons();
+    }
+
+    function removeAgendaItem(index) {
+      agendaItems.splice(index, 1);
+      // Reset current if needed
+      if (agendaItems.length > 0 && !agendaItems.some(item => item.current)) {
+        agendaItems[0].current = true;
+      }
+      updateAgendaSettings();
+      renderAgendaItems();
+      updateQuickTopicButtons();
+    }
+
+    function moveAgendaItemUp(index) {
+      if (index <= 0) return;
+      const temp = agendaItems[index];
+      agendaItems[index] = agendaItems[index - 1];
+      agendaItems[index - 1] = temp;
+      updateAgendaSettings();
+      renderAgendaItems();
+    }
+
+    function moveAgendaItemDown(index) {
+      if (index >= agendaItems.length - 1) return;
+      const temp = agendaItems[index];
+      agendaItems[index] = agendaItems[index + 1];
+      agendaItems[index + 1] = temp;
+      updateAgendaSettings();
+      renderAgendaItems();
+    }
+
+    function setCurrentAgendaItem(index) {
+      fetch(`/api/agenda/set-current/${index}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.agendaItems) {
+            agendaItems = data.agendaItems;
+            renderAgendaItems();
+          }
+        });
+    }
+
+    function completeAgendaItem(index) {
+      fetch(`/api/agenda/complete/${index}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.agendaItems) {
+            agendaItems = data.agendaItems;
+            renderAgendaItems();
+          }
+        });
+    }
+
+    function toggleAgenda() {
+      showAgendaState = document.getElementById('showAgenda').checked;
+      updateAgendaSettings();
+    }
+
+    function updateAgendaSettings() {
+      agendaTitle = document.getElementById('agendaTitle').value;
+
+      fetch('/api/agenda', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agendaItems,
+          agendaTitle,
+          showAgenda: showAgendaState
+        })
+      });
+    }
+
+    function renderAgendaItems() {
+      const container = document.getElementById('agendaItemsList');
+      document.getElementById('agendaItemCount').textContent = agendaItems.length;
+
+      if (agendaItems.length === 0) {
+        container.innerHTML = `
+          <div class="pinned-preview-empty py-4">
+            <div class="font-display text-sm tracking-wider">NO AGENDA ITEMS</div>
+            <div class="text-xs mt-1">Add topics below</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = agendaItems.map((item, i) => `
+        <div class="flex items-center justify-between p-2 rounded" style="background: var(--surface-dark); border: 1px solid ${item.current ? 'var(--semeex-gold)' : 'var(--border-color)'};">
+          <div class="flex items-center gap-2">
+            <!-- Move up/down buttons -->
+            <div class="flex flex-col gap-0">
+              <button onclick="moveAgendaItemUp(${i})" class="text-xs px-1 hover:text-white" style="color: ${i === 0 ? 'var(--border-color)' : 'var(--text-muted)'}; cursor: ${i === 0 ? 'default' : 'pointer'};" ${i === 0 ? 'disabled' : ''} title="Move up">▲</button>
+              <button onclick="moveAgendaItemDown(${i})" class="text-xs px-1 hover:text-white" style="color: ${i === agendaItems.length - 1 ? 'var(--border-color)' : 'var(--text-muted)'}; cursor: ${i === agendaItems.length - 1 ? 'default' : 'pointer'};" ${i === agendaItems.length - 1 ? 'disabled' : ''} title="Move down">▼</button>
+            </div>
+            <span class="font-display" style="color: ${item.completed ? '#22c55e' : item.current ? 'var(--semeex-gold)' : 'var(--text-muted)'};">
+              ${item.completed ? '✓' : item.current ? '▶' : (i + 1) + '.'}
+            </span>
+            <span class="${item.completed ? 'line-through text-gray-500' : ''}">${item.title}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            ${!item.completed ? `<button onclick="setCurrentAgendaItem(${i})" class="text-xs px-2 py-1 rounded" style="background: var(--surface-light);">Set Current</button>` : ''}
+            ${!item.completed ? `<button onclick="completeAgendaItem(${i})" class="text-xs px-2 py-1 rounded text-green-500" style="background: var(--surface-light);">✓ Done</button>` : ''}
+            <button onclick="removeAgendaItem(${i})" class="text-red-500 hover:text-red-400 text-sm ml-2">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function loadAgendaFromState(data) {
+      if (data.agendaItems) agendaItems = data.agendaItems;
+      if (data.agendaTitle) {
+        agendaTitle = data.agendaTitle;
+        document.getElementById('agendaTitle').value = agendaTitle;
+      }
+      if (data.showAgenda !== undefined) {
+        showAgendaState = data.showAgenda;
+        document.getElementById('showAgenda').checked = showAgendaState;
+      }
+      renderAgendaItems();
+      updateQuickTopicButtons();
+    }
+
+    // ========================================================================
+    // Topic Card Functions
+    // ========================================================================
+    function showTopicCard() {
+      const title = document.getElementById('topicCardTitle').value;
+      const subtitle = document.getElementById('topicCardSubtitle').value;
+
+      fetch('/api/topic-card/show', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, subtitle })
+      }).then(() => {
+        document.getElementById('topicCardStatus').textContent = 'VISIBLE';
+        document.getElementById('topicCardStatus').style.color = 'var(--semeex-gold)';
+      });
+    }
+
+    function hideTopicCard() {
+      fetch('/api/topic-card/hide', { method: 'POST' })
+        .then(() => {
+          document.getElementById('topicCardStatus').textContent = 'HIDDEN';
+          document.getElementById('topicCardStatus').style.color = '';
+        });
+    }
+
+    function showTopicFromAgenda(index) {
+      const item = agendaItems[index];
+      if (!item) return;
+
+      document.getElementById('topicCardTitle').value = item.title;
+      document.getElementById('topicCardSubtitle').value = '';
+      showTopicCard();
+    }
+
+    function updateQuickTopicButtons() {
+      const container = document.getElementById('quickTopicButtons');
+      if (agendaItems.length === 0) {
+        container.innerHTML = '<span class="text-xs text-gray-500">No agenda items - add topics in Agenda Panel</span>';
+        return;
+      }
+
+      container.innerHTML = agendaItems.map((item, i) => `
+        <button onclick="showTopicFromAgenda(${i})" class="btn btn-secondary btn-small" style="${item.current ? 'border-color: var(--semeex-gold); color: var(--semeex-gold);' : ''}">
+          ${item.title}
+        </button>
+      `).join('');
+    }
+
+    function loadTopicCardFromState(data) {
+      if (!data.topicCard) return;
+      topicCard = data.topicCard;
+      document.getElementById('topicCardTitle').value = topicCard.title || '';
+      document.getElementById('topicCardSubtitle').value = topicCard.subtitle || '';
+      if (topicCard.visible) {
+        document.getElementById('topicCardStatus').textContent = 'VISIBLE';
+        document.getElementById('topicCardStatus').style.color = 'var(--semeex-gold)';
+      }
+    }
+
+    // ========================================================================
+    // Extend handleMessage for widget updates
+    // ========================================================================
+    const originalHandleMessage = handleMessage;
+    handleMessage = function(data) {
+      // Handle widget-specific messages
+      switch (data.type) {
+        case 'init':
+          originalHandleMessage(data);
+          // Load widget states
+          loadNametagsFromState(data.data);
+          loadSocialsFromState(data.data);
+          loadLowerThirdFromState(data.data);
+          loadAgendaFromState(data.data);
+          loadTopicCardFromState(data.data);
+          return;
+
+        case 'nametag_update':
+          nametags = data.data;
+          loadNametagsFromState({ nametags: data.data });
+          return;
+
+        case 'social_update':
+          loadSocialsFromState(data.data);
+          return;
+
+        case 'lower_third_update':
+          loadLowerThirdFromState({ lowerThird: data.data });
+          return;
+
+        case 'agenda_update':
+          loadAgendaFromState(data.data);
+          return;
+
+        case 'topic_card_update':
+          loadTopicCardFromState({ topicCard: data.data });
+          return;
+      }
+
+      // Default handling
+      originalHandleMessage(data);
+    };
 
   </script>
 </body>

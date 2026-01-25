@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semeex Football - Nametag</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      padding: 40px;
+    }
+
+    /* Position variants */
+    body.pos-bottom-left { align-items: flex-end; justify-content: flex-start; }
+    body.pos-bottom-right { align-items: flex-end; justify-content: flex-end; }
+    body.pos-bottom-center { align-items: flex-end; justify-content: center; }
+    body.pos-top-left { align-items: flex-start; justify-content: flex-start; }
+    body.pos-top-right { align-items: flex-start; justify-content: flex-end; }
+    body.pos-top-center { align-items: flex-start; justify-content: center; }
+    body.pos-center { align-items: center; justify-content: center; }
+    body.pos-center-left { align-items: center; justify-content: flex-start; }
+    body.pos-center-right { align-items: center; justify-content: flex-end; }
+
+    :root {
+      --gold-accent: #F4E82D;
+    }
+
+    /* Main wrapper - horizontal layout for logo positioning */
+    .nametag-wrapper {
+      visibility: hidden;
+      opacity: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* Logo on left */
+    .nametag-wrapper.logo-left {
+      flex-direction: row;
+    }
+
+    /* Logo on right */
+    .nametag-wrapper.logo-right {
+      flex-direction: row-reverse;
+    }
+
+    /* Logo Container */
+    .logo-container {
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .logo-container.visible {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-image {
+      max-height: 220px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.8));
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* ========================================
+       NAMETAG STACK - Sizes to name content
+    ======================================== */
+
+    .nametag-stack {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top Yellow Accent - right-aligned */
+    .accent-top {
+      align-self: flex-end;
+      width: 60%;
+      height: 12px;
+      margin-bottom: 12px;
+    }
+
+    .accent-top img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      filter: drop-shadow(0 2px 6px rgba(244, 232, 45, 0.4));
+    }
+
+    /* Name Display - determines the width of everything below */
+    .name-display {
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      font-weight: 400;
+      text-transform: uppercase;
+      color: #ffffff;
+      line-height: 1;
+      text-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.95),
+        0 2px 4px rgba(0, 0, 0, 0.9),
+        2px 2px 0 rgba(0, 0, 0, 0.8),
+        -2px -2px 0 rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+      text-align: left;
+      font-size: 72px;  /* Base size, adjusted by JS */
+    }
+
+    /* ========================================
+       CHANNEL PANEL - Matches name width
+    ======================================== */
+
+    .channel-panel-container {
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      margin-top: 12px;
+      align-self: stretch;  /* Matches name width */
+    }
+
+    .channel-panel-container.visible {
+      display: flex;
+    }
+
+    /* Top accent for channel panel - right-aligned */
+    .accent-panel-top {
+      align-self: flex-end;
+      width: 55%;
+      height: 10px;
+      margin-bottom: 12px;
+    }
+
+    .accent-panel-top img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      filter: drop-shadow(0 2px 6px rgba(244, 232, 45, 0.4));
+    }
+
+    /* Channel Panel (silver banner) - full width of container */
+    .channel-panel {
+      position: relative;
+      width: 100%;
+      height: 70px;
+    }
+
+    .channel-panel-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .channel-text-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 15px;
+      height: 70px;
+    }
+
+    .channel-text {
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      font-weight: 400;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.1;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      font-size: 24px;  /* Base size, adjusted by JS */
+    }
+
+    /* Bottom accent for channel panel - left-aligned, closer to edge */
+    .accent-panel-bottom {
+      align-self: flex-start;
+      width: 55%;
+      height: 10px;
+      margin-top: 6px;
+      margin-left: -5px;
+    }
+
+    .accent-panel-bottom img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      filter: drop-shadow(0 2px 6px rgba(244, 232, 45, 0.4));
+    }
+
+    /* ========================================
+       Debug / Waiting State
+    ======================================== */
+
+    .waiting-message {
+      display: none;
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Special Gothic Expanded One', sans-serif;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+    }
+
+    body.debug .waiting-message {
+      display: block;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Full Nametag: Logo + Name Stack + Channel Panel -->
+  <div id="nametagWrapper" class="nametag-wrapper logo-right">
+    <!-- Logo (optional, can be left or right) -->
+    <div class="logo-container" id="logoContainer">
+      <img class="logo-image" id="logoImage" src="/public/logos/manchester-united-devil-seeklogo.svg" alt="Logo">
+    </div>
+
+    <!-- Name + Channel Stack -->
+    <div class="nametag-stack" id="nametagStack">
+      <!-- Top Yellow Accent (right-aligned) -->
+      <div class="accent-top" id="accentTop">
+        <img src="/public/Accents/TopAccentYellow.svg" alt="">
+      </div>
+
+      <!-- Name -->
+      <div class="name-display" id="nameDisplay">SEMEEX</div>
+
+      <!-- Channel Panel with accents -->
+      <div class="channel-panel-container" id="channelPanelContainer">
+        <!-- Top accent for panel (right-aligned) -->
+        <div class="accent-panel-top" id="accentPanelTop">
+          <img src="/public/Accents/TopAccentYellow.svg" alt="">
+        </div>
+
+        <!-- Silver Panel with channel name -->
+        <div class="channel-panel" id="channelPanel">
+          <svg class="channel-panel-svg" viewBox="0 0 100 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Diamond-cut banner shape - scales to any width -->
+            <path d="M0 0 L100 0 L96 35 L100 70 L0 70 L4 35 Z" fill="white"/>
+            <path d="M0 0 L100 0 L96 35 L100 70 L0 70 L4 35 Z" fill="url(#panelGradient)" fill-opacity="0.4"/>
+            <defs>
+              <linearGradient id="panelGradient" x1="50" y1="70" x2="50" y2="0" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#D0D0D0"/>
+                <stop offset="0.5" stop-color="#F8F8F8"/>
+                <stop offset="1" stop-color="#D0D0D0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="channel-text-wrapper">
+            <span class="channel-text" id="channelText">SEMEEX<br>FOOTBALL</span>
+          </div>
+        </div>
+
+        <!-- Bottom accent for panel (left-aligned) -->
+        <div class="accent-panel-bottom" id="accentPanelBottom">
+          <img src="/public/Accents/BottomAccentYellow.svg" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug waiting message -->
+  <div class="waiting-message">Waiting for nametag data...</div>
+
+  <script>
+    // ========================================================================
+    // Configuration
+    // ========================================================================
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.get('debug') === 'true';
+    const slot = parseInt(params.get('slot')) || 1;
+
+    if (debug) {
+      document.body.classList.add('debug');
+    }
+
+    const position = params.get('position') || 'bottom-left';
+    document.body.classList.add(`pos-${position}`);
+
+    console.log('[Nametag] Slot:', slot, 'Position:', position);
+
+    // ========================================================================
+    // FONT SCALING CONFIGURATION
+    // ========================================================================
+
+    // Name font sizes based on character count
+    const NAME_FONT_SIZES = {
+      1: 100,
+      2: 90,
+      3: 82,
+      4: 76,
+      5: 70,
+      6: 64,    // "SEMEEX" (6 chars)
+      7: 58,
+      8: 52,
+      9: 48,
+      10: 44,
+      default: 40
+    };
+
+    // Channel name font sizes
+    const CHANNEL_FONT_SIZES = {
+      singleLine: {
+        short: 32,    // 1-10 chars
+        medium: 28,   // 11-16 chars
+        long: 24      // 17+ chars
+      },
+      multiLine: 22   // Fixed size for 2-line channel names
+    };
+
+    // ========================================================================
+    // State
+    // ========================================================================
+    let ws = null;
+    let currentData = null;
+    let isAnimating = false;
+    let isVisible = false;
+
+    // DOM Elements
+    const wrapper = document.getElementById('nametagWrapper');
+    const logoContainer = document.getElementById('logoContainer');
+    const logoImage = document.getElementById('logoImage');
+    const nametagStack = document.getElementById('nametagStack');
+    const accentTop = document.getElementById('accentTop');
+    const nameDisplay = document.getElementById('nameDisplay');
+    const channelPanelContainer = document.getElementById('channelPanelContainer');
+    const channelPanel = document.getElementById('channelPanel');
+    const channelText = document.getElementById('channelText');
+    const accentPanelTop = document.getElementById('accentPanelTop');
+    const accentPanelBottom = document.getElementById('accentPanelBottom');
+
+    // ========================================================================
+    // Font Size Calculation
+    // ========================================================================
+
+    function getNameFontSize(name) {
+      const len = name.length;
+      return NAME_FONT_SIZES[len] || NAME_FONT_SIZES.default;
+    }
+
+    function getChannelFontSize(channelName, isMultiLine) {
+      if (isMultiLine) {
+        return CHANNEL_FONT_SIZES.multiLine;
+      }
+
+      const len = channelName.length;
+      if (len <= 10) return CHANNEL_FONT_SIZES.singleLine.short;
+      if (len <= 16) return CHANNEL_FONT_SIZES.singleLine.medium;
+      return CHANNEL_FONT_SIZES.singleLine.long;
+    }
+
+    // ========================================================================
+    // Render Nametag Data
+    // ========================================================================
+    function renderNametag(data) {
+      if (!data) return;
+
+      // Update name with scaled font
+      const name = data.name || 'GUEST';
+      nameDisplay.textContent = name;
+      const nameFontSize = getNameFontSize(name);
+      nameDisplay.style.fontSize = `${nameFontSize}px`;
+      nameDisplay.style.letterSpacing = `${Math.max(1, nameFontSize * 0.02)}px`;
+
+      // Update channel name
+      if (data.channelName) {
+        // Replace \n with <br> for display
+        const channelHtml = data.channelName.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+        channelText.innerHTML = channelHtml;
+
+        // Check if single or multi-line
+        const isMultiLine = channelHtml.includes('<br>');
+
+        // Get plain text for length calculation (longest line for multi-line)
+        let textForSizing = data.channelName.replace(/\\n/g, '\n');
+        if (isMultiLine) {
+          const lines = textForSizing.split('\n');
+          textForSizing = lines.reduce((a, b) => a.length > b.length ? a : b, '');
+        }
+
+        const channelFontSize = getChannelFontSize(textForSizing, isMultiLine);
+        channelText.style.fontSize = `${channelFontSize}px`;
+        channelText.style.letterSpacing = `${Math.max(1, channelFontSize * 0.04)}px`;
+
+        channelPanelContainer.classList.add('visible');
+      } else {
+        channelPanelContainer.classList.remove('visible');
+      }
+
+      // Update logo
+      if (data.showLogo && data.logoUrl) {
+        logoImage.src = data.logoUrl;
+        logoContainer.classList.add('visible');
+
+        // Logo position
+        wrapper.classList.remove('logo-left', 'logo-right');
+        wrapper.classList.add(data.logoPosition === 'left' ? 'logo-left' : 'logo-right');
+      } else {
+        logoContainer.classList.remove('visible');
+      }
+    }
+
+    // ========================================================================
+    // Premium Broadcast Animations
+    // ========================================================================
+    function animateIn(data) {
+      if (isAnimating || isVisible) return;
+      isAnimating = true;
+
+      renderNametag(data);
+      currentData = data;
+
+      const hasChannel = data.channelName;
+      const hasLogo = data.showLogo && data.logoUrl;
+
+      // Kill existing animations
+      gsap.killTweensOf([wrapper, logoContainer, accentTop, nameDisplay,
+                         channelPanelContainer, channelPanel, accentPanelTop, accentPanelBottom, channelText]);
+
+      // Initial states - everything starts invisible/offset
+      gsap.set(wrapper, { visibility: 'visible', opacity: 1 });
+      gsap.set(accentTop, { scaleX: 0, opacity: 0, transformOrigin: 'right center' });
+      gsap.set(nameDisplay, { x: -60, opacity: 0, filter: 'blur(8px)' });
+
+      if (hasChannel) {
+        gsap.set(accentPanelTop, { scaleX: 0, opacity: 0, transformOrigin: 'right center' });
+        gsap.set(channelPanel, { scaleX: 0, opacity: 0, transformOrigin: 'left center' });
+        gsap.set(channelText, { opacity: 0, y: 10 });
+        gsap.set(accentPanelBottom, { scaleX: 0, opacity: 0, transformOrigin: 'left center' });
+      }
+
+      if (hasLogo) {
+        gsap.set(logoContainer, { scale: 0.6, opacity: 0, rotation: -5 });
+      }
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimating = false;
+          isVisible = true;
+          console.log('[Nametag] Animation complete:', data.name);
+        }
+      });
+
+      // 1. Top accent wipes in from right (scale)
+      tl.to(accentTop, {
+        scaleX: 1,
+        opacity: 1,
+        duration: 0.6,
+        ease: 'power2.out'
+      });
+
+      // 2. Name slides in with blur reveal
+      tl.to(nameDisplay, {
+        x: 0,
+        opacity: 1,
+        filter: 'blur(0px)',
+        duration: 0.8,
+        ease: 'power3.out'
+      }, '-=0.3');
+
+      // 3. Channel panel sequence
+      if (hasChannel) {
+        // Top accent wipes in
+        tl.to(accentPanelTop, {
+          scaleX: 1,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.4');
+
+        // Panel expands
+        tl.to(channelPanel, {
+          scaleX: 1,
+          opacity: 1,
+          duration: 0.7,
+          ease: 'power2.inOut'
+        }, '-=0.3');
+
+        // Text fades up
+        tl.to(channelText, {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.5');
+
+        // Bottom accent wipes in from left
+        tl.to(accentPanelBottom, {
+          scaleX: 1,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out'
+        }, '-=0.4');
+      }
+
+      // 4. Logo swoops in with rotation
+      if (hasLogo) {
+        tl.to(logoContainer, {
+          scale: 1,
+          opacity: 1,
+          rotation: 0,
+          duration: 0.8,
+          ease: 'back.out(1.2)'
+        }, hasChannel ? '-=0.8' : '-=0.5');
+      }
+
+      console.log('[Nametag] Animating in:', data.name);
+    }
+
+    function animateOut(callback) {
+      if (isAnimating || !isVisible) {
+        if (callback) callback();
+        return;
+      }
+      isAnimating = true;
+
+      const hasChannel = currentData && currentData.channelName;
+      const hasLogo = currentData && currentData.showLogo && currentData.logoUrl;
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          gsap.set(wrapper, { visibility: 'hidden' });
+          // Reset filter
+          gsap.set(nameDisplay, { filter: 'blur(0px)' });
+          currentData = null;
+          isAnimating = false;
+          isVisible = false;
+          if (callback) callback();
+          console.log('[Nametag] Animation out complete');
+        }
+      });
+
+      // Logo shrinks and fades first
+      if (hasLogo) {
+        tl.to(logoContainer, {
+          scale: 0.7,
+          opacity: 0,
+          rotation: 5,
+          duration: 0.5,
+          ease: 'power2.in'
+        });
+      }
+
+      // Channel panel collapses in reverse
+      if (hasChannel) {
+        // Bottom accent wipes out to left
+        tl.to(accentPanelBottom, {
+          scaleX: 0,
+          opacity: 0,
+          transformOrigin: 'left center',
+          duration: 0.4,
+          ease: 'power2.in'
+        }, hasLogo ? '-=0.3' : '0');
+
+        // Text fades down
+        tl.to(channelText, {
+          opacity: 0,
+          y: 8,
+          duration: 0.35,
+          ease: 'power2.in'
+        }, '-=0.35');
+
+        // Panel collapses
+        tl.to(channelPanel, {
+          scaleX: 0,
+          opacity: 0,
+          duration: 0.5,
+          ease: 'power2.in'
+        }, '-=0.25');
+
+        // Top accent wipes out to right
+        tl.to(accentPanelTop, {
+          scaleX: 0,
+          opacity: 0,
+          transformOrigin: 'right center',
+          duration: 0.4,
+          ease: 'power2.in'
+        }, '-=0.35');
+      }
+
+      // Name blurs and slides out
+      tl.to(nameDisplay, {
+        x: 50,
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.5,
+        ease: 'power2.in'
+      }, '-=0.25');
+
+      // Top accent wipes out
+      tl.to(accentTop, {
+        scaleX: 0,
+        opacity: 0,
+        transformOrigin: 'right center',
+        duration: 0.4,
+        ease: 'power2.in'
+      }, '-=0.35');
+
+      console.log('[Nametag] Animating out');
+    }
+
+    // ========================================================================
+    // Handle Nametag Updates
+    // ========================================================================
+    function handleNametagUpdate(data) {
+      // Get this slot's data
+      const slotData = data && data[slot];
+
+      if (slotData && slotData.visible && slotData.name) {
+        if (!isVisible) {
+          animateIn(slotData);
+        } else if (currentData &&
+                   (currentData.name !== slotData.name ||
+                    currentData.channelName !== slotData.channelName ||
+                    currentData.logoUrl !== slotData.logoUrl)) {
+          // Data changed - animate out then in
+          animateOut(() => {
+            setTimeout(() => animateIn(slotData), 150);
+          });
+        }
+      } else if (isVisible) {
+        animateOut();
+      }
+    }
+
+    // ========================================================================
+    // WebSocket Connection
+    // ========================================================================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('[Nametag] WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch (e) {
+          console.error('[Nametag] Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('[Nametag] WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (error) => {
+        console.error('[Nametag] WebSocket error:', error);
+      };
+    }
+
+    function handleMessage(data) {
+      switch (data.type) {
+        case 'batch':
+          if (data.messages && Array.isArray(data.messages)) {
+            for (const msg of data.messages) {
+              handleMessage(msg);
+            }
+          }
+          break;
+
+        case 'init':
+          if (data.data.nametags) {
+            handleNametagUpdate(data.data.nametags);
+          }
+          break;
+
+        case 'nametag_update':
+          handleNametagUpdate(data.data);
+          break;
+      }
+    }
+
+    // ========================================================================
+    // Initialize
+    // ========================================================================
+
+    // Debug: Test animation (skip WebSocket in test mode to avoid double animation)
+    if (params.get('test') === 'true') {
+      console.log('[Nametag] Test mode - WebSocket disabled');
+      const testSlots = {
+        1: {
+          name: 'SEMEEX',
+          channelName: 'SEMEEX\nFOOTBALL',
+          showLogo: true,
+          logoUrl: '/public/logos/SemeexBadgeLogo.png',
+          logoPosition: 'right',
+          visible: true
+        },
+        2: {
+          name: 'JAMES',
+          channelName: 'THE UNITED\nMUPPETIERS',
+          showLogo: true,
+          logoUrl: '/public/logos/UnitedMuppetiers.png',
+          logoPosition: 'left',
+          visible: true
+        },
+        3: {
+          name: 'ANDY',
+          channelName: 'FOOTY WITH\nAN EDGE',
+          showLogo: true,
+          logoUrl: '/public/logos/FWAELogo.png',
+          logoPosition: 'right',
+          visible: true
+        },
+        4: { name: 'GUEST', visible: true },
+        5: { name: 'ANALYST', channelName: 'SPECIAL GUEST', visible: true }
+      };
+
+      setTimeout(() => {
+        handleNametagUpdate(testSlots);
+      }, 1000);
+
+      // Test hide after 10 seconds
+      setTimeout(() => {
+        const hiddenSlots = { ...testSlots };
+        hiddenSlots[slot] = { ...hiddenSlots[slot], visible: false };
+        handleNametagUpdate(hiddenSlots);
+      }, 10000);
+
+      // Test show again after 12 seconds
+      setTimeout(() => {
+        handleNametagUpdate(testSlots);
+      }, 12000);
+    } else {
+      // Only connect WebSocket when not in test mode
+      connectWebSocket();
+    }
+  </script>
+</body>
+</html>

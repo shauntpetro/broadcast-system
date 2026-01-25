@@ -20,7 +20,7 @@ const compression = require('compression');
 // Import modular components
 const YouTubeChatScraper = require('./lib/YouTubeChatScraper');
 const state = require('./lib/state');
-const { broadcast, addClient, removeClient, getClientCount } = require('./lib/broadcast');
+const { broadcast, addClient, removeClient, getClientCount, broadcastNametagUpdate, broadcastSocialUpdate, broadcastLowerThirdUpdate, broadcastAgendaUpdate } = require('./lib/broadcast');
 const { checkRateLimit, startCleanupInterval } = require('./lib/rateLimit');
 const { router: apiRouter, createStateRoutes, UPLOADS_DIR } = require('./lib/routes');
 
@@ -137,7 +137,17 @@ wss.on('connection', (ws) => {
       tickerSpeed: state.tickerSpeed,
       showTicker: state.showTicker,
       tickerStyle: state.tickerStyle,
-      sportsTicker: state.sportsTicker
+      sportsTicker: state.sportsTicker,
+      // New widget states
+      nametags: state.nametags,
+      socialAccounts: state.socialAccounts,
+      socialRotationSpeed: state.socialRotationSpeed,
+      showSocials: state.showSocials,
+      lowerThird: state.lowerThird,
+      agendaItems: state.agendaItems,
+      agendaTitle: state.agendaTitle,
+      showAgenda: state.showAgenda,
+      topicCard: state.topicCard
     }
   }));
 
@@ -353,6 +363,11 @@ server.listen(PORT, '0.0.0.0', () => {
 ║  - Ticker Widget: http://localhost:${PORT}/ticker.html        ║
 ║  - Sports Ticker: http://localhost:${PORT}/ticker_sports.html ║
 ║  - Slideshow:     http://localhost:${PORT}/slideshow_4.html   ║
+║  - Nametag:       http://localhost:${PORT}/nametag.html?slot=1║
+║  - Social Widget: http://localhost:${PORT}/social_widget.html ║
+║  - Lower Third:   http://localhost:${PORT}/lower_third.html   ║
+║  - Agenda Panel:  http://localhost:${PORT}/agenda.html        ║
+║  - Topic Card:    http://localhost:${PORT}/topic_card.html    ║
 ╠════════════════════════════════════════════════════════════╣
 ║  API:                                                       ║
 ║  - Health Check:  http://localhost:${PORT}/api/health         ║
